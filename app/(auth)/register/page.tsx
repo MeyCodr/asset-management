@@ -123,7 +123,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. PHN-001"
+                placeholder="e.g. M0750"
                 value={form.staffId}
                 onChange={(e) => setForm((f) => ({ ...f, staffId: e.target.value }))}
               />

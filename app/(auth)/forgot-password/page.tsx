@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             <input
               type="text"
               className="form-input"
-              placeholder="e.g. PHN-001"
+              placeholder="e.g. M0750"
               value={staffId}
               onChange={(e) => setStaffId(e.target.value)}
               required
