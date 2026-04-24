@@ -14,6 +14,8 @@ model Department {
   createdAt DateTime   @default(now())
   employees Employee[]
   assets    Asset[]
+
+  @@map("department")
 }
 
 model Employee {
@@ -28,6 +30,8 @@ model Employee {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   assignments  AssetAssignment[]
+
+  @@map("employee")
 }
 
 model AssetCategory {
@@ -36,6 +40,8 @@ model AssetCategory {
   type   String
   icon   String?
   assets Asset[]
+
+  @@map("assetcategory")
 }
 
 model Asset {
@@ -68,6 +74,8 @@ model Asset {
   updatedAt       DateTime            @updatedAt
   assignments     AssetAssignment[]
   maintenance     MaintenanceRecord[]
+
+  @@map("asset")
 }
 
 model AssetAssignment {
@@ -80,6 +88,8 @@ model AssetAssignment {
   returnedDate DateTime?
   notes        String?   @db.Text
   createdAt    DateTime  @default(now())
+
+  @@map("assetassignment")
 }
 
 model MaintenanceRecord {
@@ -96,12 +106,16 @@ model MaintenanceRecord {
   status              String    @default("Completed")
   notes               String?   @db.Text
   createdAt           DateTime  @default(now())
+
+  @@map("maintenancerecord")
 }
 
 model SystemConfig {
   key       String   @id
   value     String   @db.Text
   updatedAt DateTime @updatedAt
+
+  @@map("systemconfig")
 }
 
 model User {
@@ -114,6 +128,8 @@ model User {
   status    String   @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("user")
 }
 
 model PasswordResetToken {
@@ -122,6 +138,8 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@map("passwordresettoken")
 }
 
 model NotificationLog {
@@ -132,6 +150,7 @@ model NotificationLog {
   sentAt     DateTime @default(now())
 
   @@unique([licenseId, threshold, renewalEnd])
+  @@map("notificationlog")
 }
 
 model SoftwareLicense {
@@ -152,4 +171,6 @@ model SoftwareLicense {
   notes         String?   @db.Text
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@map("softwarelicense")
 }
