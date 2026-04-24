@@ -5,8 +5,7 @@ export default function AuthLayout({
 }) {
   return (
     <div
-      className="h-full flex items-center justify-center"
-      style={{ background: "#f1f5f9" }}
+      className="h-full flex items-center justify-center bg-slate-100"
     >
       {children}
     </div>
