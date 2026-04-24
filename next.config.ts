@@ -1,8 +1,24 @@
 import type { NextConfig } from "next";
 
-// CSP is handled per-request with nonces in proxy.ts to avoid unsafe-inline.
-// These headers are safe to set statically for all routes.
+const cspValue = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
+].join("; ");
+
 const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: cspValue,
+  },
   {
     key: "X-DNS-Prefetch-Control",
     value: "on",

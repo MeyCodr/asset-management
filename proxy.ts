@@ -5,23 +5,6 @@ const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-passwor
 const PUBLIC_API_PREFIX = "/api/auth/";
 const BASE_PATH = "/phniams";
 
-function buildCsp(nonce: string): string {
-  const isDev = process.env.NODE_ENV === "development";
-  return [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`}`,
-    "img-src 'self' data: blob:",
-    "font-src 'self'",
-    "connect-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ].join("; ");
-}
-
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const logicalPath = pathname.startsWith(BASE_PATH)
@@ -30,28 +13,14 @@ export async function proxy(req: NextRequest) {
 
   const isApiRoute = logicalPath.startsWith("/api/");
 
-  // Generate nonce for page routes only (CSP is irrelevant on API/JSON responses)
-  const nonce = !isApiRoute ? Buffer.from(crypto.randomUUID()).toString("base64") : null;
-  const csp = nonce ? buildCsp(nonce) : null;
-
-  // Forward nonce to server components via request header
-  const requestHeaders = new Headers(req.headers);
-  if (nonce) requestHeaders.set("x-nonce", nonce);
-  if (csp) requestHeaders.set("Content-Security-Policy", csp);
-
-  function withCsp(response: NextResponse): NextResponse {
-    if (csp) response.headers.set("Content-Security-Policy", csp);
-    return response;
-  }
-
   // Allow Next.js internals
   if (logicalPath.startsWith("/_next") || logicalPath.startsWith("/favicon")) {
-    return NextResponse.next({ request: { headers: requestHeaders } });
+    return NextResponse.next();
   }
 
   // Allow public auth pages and auth API routes
   if (PUBLIC_PATHS.includes(logicalPath) || logicalPath.startsWith(PUBLIC_API_PREFIX)) {
-    return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
+    return NextResponse.next();
   }
 
   const token = req.cookies.get("token")?.value;
@@ -75,7 +44,7 @@ export async function proxy(req: NextRequest) {
     return res;
   }
 
-  return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
+  return NextResponse.next();
 }
 
 export const config = {
