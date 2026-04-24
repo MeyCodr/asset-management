@@ -1,0 +1,56 @@
+<svg width="100%" viewBox="0 0 680 400" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>PHNIAMS Logo</title>
+  <desc>Logo for PHN IT Asset Management System (PHNIAMS) featuring a shield with circuit motifs and stylized text</desc>
+
+  <!-- Shield body -->
+  <path d="M200 60 L310 60 L310 210 Q310 260 255 285 Q200 260 200 210 Z" fill="#1a2e5e"/>
+
+  <!-- Shield inner highlight -->
+  <path d="M209 72 L301 72 L301 208 Q301 250 255 272 Q209 250 209 208 Z" fill="#243d7a"/>
+
+  <!-- Horizontal circuit line 1 -->
+  <line x1="222" y1="120" x2="288" y2="120" stroke="#4fa3e0" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="222" cy="120" r="4" fill="#4fa3e0"/>
+  <circle cx="255" cy="120" r="4" fill="#4fa3e0"/>
+  <circle cx="288" cy="120" r="4" fill="#4fa3e0"/>
+
+  <!-- Vertical connector -->
+  <line x1="255" y1="120" x2="255" y2="148" stroke="#4fa3e0" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Horizontal circuit line 2 -->
+  <line x1="222" y1="148" x2="288" y2="148" stroke="#2ec4b6" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="222" cy="148" r="4" fill="#2ec4b6"/>
+  <circle cx="255" cy="148" r="4" fill="#2ec4b6"/>
+  <circle cx="288" cy="148" r="4" fill="#2ec4b6"/>
+
+  <!-- Connector down -->
+  <line x1="222" y1="148" x2="222" y2="175" stroke="#2ec4b6" stroke-width="2" stroke-linecap="round"/>
+  <line x1="288" y1="148" x2="288" y2="175" stroke="#4fa3e0" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Bottom circuit line -->
+  <line x1="222" y1="175" x2="288" y2="175" stroke="#f0a500" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="222" cy="175" r="4" fill="#f0a500"/>
+  <circle cx="255" cy="175" r="4" fill="#f0a500"/>
+  <circle cx="288" cy="175" r="4" fill="#f0a500"/>
+
+  <!-- Small vertical tick accents -->
+  <line x1="232" y1="113" x2="232" y2="127" stroke="#ffffff" stroke-width="1.2" stroke-opacity="0.25"/>
+  <line x1="278" y1="113" x2="278" y2="127" stroke="#ffffff" stroke-width="1.2" stroke-opacity="0.25"/>
+
+  <!-- Shield bottom tip dot -->
+  <circle cx="255" cy="260" r="5" fill="#4fa3e0"/>
+
+  <!-- PHN small badge top of shield -->
+  <rect x="231" y="73" width="48" height="20" rx="4" fill="#4fa3e0" opacity="0.85"/>
+  <text x="255" y="87" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="2">PHN</text>
+
+  <!-- Logotype text -->
+  <text x="335" y="155" font-family="'Segoe UI', sans-serif" font-size="38" font-weight="700" fill="#1a2e5e">PHNIAMS</text>
+  <text x="336" y="178" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="400" fill="#4a6090">IT ASSET MANAGEMENT SYSTEM</text>
+
+  <!-- Divider line -->
+  <line x1="335" y1="188" x2="595" y2="188" stroke="#4fa3e0" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Tagline -->
+  <text x="336" y="204" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="400" fill="#7a90b8">Manage · Track · Optimize</text>
+</svg>

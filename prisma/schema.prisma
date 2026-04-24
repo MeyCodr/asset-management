@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id        String     @id @default(cuid())
+  name      String
+  code      String     @unique
+  createdAt DateTime   @default(now())
+  employees Employee[]
+  assets    Asset[]
+}
+
+model Employee {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  jobTitle     String
+  phone        String?
+  staffId      String?           @unique
+  departmentId String
+  department   Department        @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  assignments  AssetAssignment[]
+}
+
+model AssetCategory {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  type   String
+  icon   String?
+  assets Asset[]
+}
+
+model Asset {
+  id              String              @id @default(cuid())
+  assetTag        String              @unique
+  name            String
+  brand           String?
+  model           String?
+  serialNumber    String?             @unique
+  status          String              @default("In Stock")
+  assetStatus     String?
+  officeLicense   String?
+  categoryId      String
+  category        AssetCategory       @relation(fields: [categoryId], references: [id])
+  departmentId    String
+  department      Department          @relation(fields: [departmentId], references: [id])
+  location        String?
+  purchaseDate    DateTime?
+  purchaseCost    Float?
+  vendor          String?
+  warrantyExpiry  DateTime?
+  ipAddress       String?
+  macAddress      String?
+  operatingSystem String?
+  processor       String?
+  ram             String?
+  storage         String?
+  notes           String?             @db.Text
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  assignments     AssetAssignment[]
+  maintenance     MaintenanceRecord[]
+}
+
+model AssetAssignment {
+  id           String    @id @default(cuid())
+  assetId      String
+  asset        Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  assignedDate DateTime  @default(now())
+  returnedDate DateTime?
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now())
+}
+
+model MaintenanceRecord {
+  id                  String    @id @default(cuid())
+  assetId             String
+  asset               Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  type                String
+  description         String    @db.Text
+  cost                Float?
+  performedBy         String?
+  vendor              String?
+  maintenanceDate     DateTime
+  nextMaintenanceDate DateTime?
+  status              String    @default("Completed")
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  staffId   String?  @unique
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model NotificationLog {
+  id         String   @id @default(cuid())
+  licenseId  String
+  threshold  Int      // 60 or 14 (days before expiry)
+  renewalEnd DateTime // ties the log to a specific renewal period
+  sentAt     DateTime @default(now())
+
+  @@unique([licenseId, threshold, renewalEnd])
+}
+
+model SoftwareLicense {
+  id            String    @id @default(cuid())
+  name          String
+  vendor        String
+  refLetter     String?
+  refLetterDate DateTime?
+  renewalStart  DateTime?
+  renewalEnd    DateTime?
+  itSection     String?
+  status        String    @default("On Going")
+  licenseKey    String?
+  licenseType   String
+  cost          Float?
+  totalSeats    Int       @default(1)
+  usedSeats     Int       @default(0)
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

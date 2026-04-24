@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Start-Process node -ArgumentList '\\\\\"C:\\\\Users\\\\amir.anwar\\\\PHN Projects\\\\asset-management\\\\node_modules\\\\.bin\\\\next\\\\\",\\\\\"dev\\\\\"' -WorkingDirectory 'C:\\\\Users\\\\amir.anwar\\\\PHN Projects\\\\asset-management' -WindowStyle Hidden\")",
+      "Bash(node \"c:/Users/amir.anwar/PHN Projects/asset-management/node_modules/.bin/next\" dev)",
+      "Bash(powershell -Command ':*)",
+      "Bash(cmd //c \"taskkill /F /IM node.exe /T\")",
+      "Bash(node node_modules/next/dist/bin/next dev)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); s=d['stats']; print\\(f'Assets: {s[\\\\\"totalAssets\\\\\"]}, Active: {s[\\\\\"activeAssets\\\\\"]}, Employees: {s[\\\\\"totalEmployees\\\\\"]}, Assignments: {s[\\\\\"activeAssignments\\\\\"]}, Licenses: {s[\\\\\"totalLicenses\\\\\"]}, TotalValue: \\\\${s[\\\\\"totalCost\\\\\"]:,.0f}'\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); const s=d.stats; console.log\\('Assets:',s.totalAssets,'Active:',s.activeAssets,'Employees:',s.totalEmployees,'Assignments:',s.activeAssignments,'Licenses:',s.totalLicenses,'Value: $'+s.totalCost.toFixed\\(0\\)\\)\")",
+      "Bash(curl -s \"http://localhost:3000/api/dashboard\" -o /tmp/dash.json)",
+      "Bash(node -e \"const d=require\\('/tmp/dash.json'\\); const s=d.stats; console.log\\('Assets:',s.totalAssets,'Active:',s.activeAssets,'Employees:',s.totalEmployees,'Assignments:',s.activeAssignments,'Licenses:',s.totalLicenses,'Value: USD',s.totalCost.toFixed\\(0\\)\\)\")",
+      "Bash(curl -s \"http://localhost:3000/api/dashboard\")",
+      "Bash(node -e \"const d=require\\('C:/Users/amir.anwar/AppData/Local/Temp/dash.json'\\); const s=d.stats; console.log\\('Assets:',s.totalAssets,'| Active:',s.activeAssets,'| Employees:',s.totalEmployees,'| Assignments:',s.activeAssignments,'| Licenses:',s.totalLicenses,'| Portfolio: USD',s.totalCost.toFixed\\(0\\)\\)\")",
+      "Bash(npm info:*)",
+      "Bash(npm search:*)",
+      "Bash(node -e ':*)",
+      "Bash(node -e \"console.log\\(require\\('@prisma/client/package.json'\\).version\\)\")",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate reset --force)",
+      "Bash(xargs -I{} echo \"Killed {} processes\")",
+      "Bash(npm uninstall:*)",
+      "Bash(npm list:*)",
+      "Bash(npx next *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "Bash(xargs grep *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\amir.anwar\\PHN Projects\\asset-management\\app\\api\\users",
+      "c:\\Users\\amir.anwar\\PHN Projects\\asset-management\\app\\api\\departments",
+      "c:\\Users\\amir.anwar\\PHN Projects\\asset-management\\app\\api\\categories"
+    ]
+  }
+}

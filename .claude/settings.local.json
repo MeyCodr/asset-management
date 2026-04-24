@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)"
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(node -e \"const { PrismaClient } = require\\('@prisma/client'\\); console.log\\('OK'\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/seed)",
+      "Bash(node -e ':*)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(node scripts/seed.mjs)",
+      "Bash(curl -s http://localhost:3000/api/dashboard)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(cmd /c \"taskkill /F /IM node.exe\")",
+      "Bash(start /B cmd /c \"npm run dev > C:\\\\Users\\\\AMIR~1.ANW\\\\AppData\\\\Local\\\\Temp\\\\nextdev.log 2>&1\")",
+      "Bash(curl -s http://localhost:3000/api/assets)",
+      "Bash(curl -s http://localhost:3000/api/assets -v)",
+      "Bash(cmd /c \"netstat -an | findstr :3000\")",
+      "Bash(powershell -Command \"Start-Process npm -ArgumentList 'run','dev' -WorkingDirectory 'c:/Users/amir.anwar/PHN Projects/asset-management' -WindowStyle Hidden -RedirectStandardOutput 'C:\\\\Users\\\\amir.anwar\\\\AppData\\\\Local\\\\Temp\\\\nextdev.log'\")"
     ]
   }
 }
