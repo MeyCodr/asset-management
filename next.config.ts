@@ -35,6 +35,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   basePath: "/phniams",
+  experimental: {
+    sri: {
+      algorithm: "sha256",
+    },
+  },
   async headers() {
     return [
       {
