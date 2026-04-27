@@ -23,7 +23,8 @@
       "Bash(npx next *)",
       "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
       "Bash(xargs grep *)",
-      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('next:', p.dependencies.next\\)\")",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(16\\).toString\\('base64url'\\)\\)\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\amir.anwar\\PHN Projects\\asset-management\\app\\api\\users",

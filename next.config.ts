@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 
+const nonce = process.env.DEPLOY_NONCE;
+if (!nonce) throw new Error("DEPLOY_NONCE env var is required");
+
 const cspValue = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'nonce-${nonce}'`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
