@@ -31,12 +31,19 @@ function attr(entry: Record<string, string | string[]>, key: string): string {
   return Array.isArray(val) ? val[0] : val;
 }
 
+const ldapsTlsOptions = {
+  rejectUnauthorized: false,
+  // Allow TLS 1.0/1.1 for older AD/Windows Server deployments
+  minVersion: "TLSv1" as const,
+  ciphers: "ALL",
+};
+
 function createClient(config: ADConfig) {
   return new Client({
     url: `${config.useTLS ? "ldaps" : "ldap"}://${config.host}:${config.port}`,
     timeout: 15000,
     connectTimeout: 8000,
-    tlsOptions: config.useTLS ? { rejectUnauthorized: false } : undefined,
+    tlsOptions: config.useTLS ? ldapsTlsOptions : undefined,
   });
 }
 
@@ -45,9 +52,9 @@ export async function testADConnection(
 ): Promise<{ ok: boolean; message: string }> {
   const client = new Client({
     url: `${config.useTLS ? "ldaps" : "ldap"}://${config.host}:${config.port}`,
-    timeout: 5000,
-    connectTimeout: 5000,
-    tlsOptions: config.useTLS ? { rejectUnauthorized: false } : undefined,
+    timeout: 15000,
+    connectTimeout: 15000,
+    tlsOptions: config.useTLS ? ldapsTlsOptions : undefined,
   });
 
   try {
