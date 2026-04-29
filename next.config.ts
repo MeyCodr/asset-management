@@ -6,7 +6,7 @@ if (!nonce) throw new Error("DEPLOY_NONCE env var is required");
 const cspValue = [
   "default-src 'self'",
   `script-src 'self' 'nonce-${nonce}'`,
-  `style-src 'self' 'nonce-${nonce}'`,
+  "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self'",

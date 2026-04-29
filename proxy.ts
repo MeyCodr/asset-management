@@ -15,7 +15,7 @@ function withNonce(req: NextRequest): NextRequest["headers"] {
   if (!DEPLOY_NONCE) return req.headers;
   const h = new Headers(req.headers);
   h.set("x-nonce", DEPLOY_NONCE);
-  h.set("Content-Security-Policy", `script-src 'self' 'nonce-${DEPLOY_NONCE}'; style-src 'self' 'nonce-${DEPLOY_NONCE}'`);
+  h.set("Content-Security-Policy", `script-src 'self' 'nonce-${DEPLOY_NONCE}'`);
   return h;
 }
 
