@@ -62,5 +62,10 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Root path (e.g. /phniams with no trailing slash) must be explicit;
+    // the compiled basePath regex for the pattern below requires a subpath.
+    "/",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
