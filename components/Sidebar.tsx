@@ -31,12 +31,20 @@ const navItems = [
 // 30 minutes inactivity → show warning; 60 s to act before forced logout
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const WARNING_COUNTDOWN_S = 60;
+// Warn 5 minutes before absolute session expiry
+const SESSION_WARN_BEFORE_S = 5 * 60;
 
 interface CurrentUser {
   id: string;
   name: string;
   email: string;
   role: string;
+  exp?: number;
+}
+
+function formatSeconds(s: number) {
+  if (s >= 60) return `${Math.floor(s / 60)}m ${s % 60}s`;
+  return `${s}s`;
 }
 
 export default function Sidebar() {
@@ -45,9 +53,14 @@ export default function Sidebar() {
 const [user, setUser] = useState<CurrentUser | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_S);
+  const [sessionWarning, setSessionWarning] = useState(false);
+  const [sessionCountdown, setSessionCountdown] = useState(SESSION_WARN_BEFORE_S);
 
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionWarnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionLogoutTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionCountdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     fetch(`${BASE_PATH}/api/auth/me`)
@@ -58,8 +71,35 @@ const [user, setUser] = useState<CurrentUser | null>(null);
         }
         return r.ok ? r.json() : null;
       })
-      .then(setUser)
+      .then((data: CurrentUser | null) => {
+        setUser(data);
+        if (!data?.exp) return;
+
+        const msLeft = data.exp * 1000 - Date.now();
+        if (msLeft <= 0) { handleLogout(); return; }
+
+        const msUntilWarn = msLeft - SESSION_WARN_BEFORE_S * 1000;
+        if (msUntilWarn > 0) {
+          sessionWarnTimer.current = setTimeout(() => {
+            setSessionWarning(true);
+            setSessionCountdown(SESSION_WARN_BEFORE_S);
+          }, msUntilWarn);
+        } else {
+          setSessionWarning(true);
+          setSessionCountdown(Math.ceil(msLeft / 1000));
+        }
+
+        sessionLogoutTimer.current = setTimeout(() => {
+          handleLogout();
+        }, msLeft);
+      })
       .catch(() => null);
+
+    return () => {
+      if (sessionWarnTimer.current) clearTimeout(sessionWarnTimer.current);
+      if (sessionLogoutTimer.current) clearTimeout(sessionLogoutTimer.current);
+      if (sessionCountdownTimer.current) clearInterval(sessionCountdownTimer.current);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleLogout() {
@@ -95,6 +135,18 @@ const [user, setUser] = useState<CurrentUser | null>(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showWarning]);
 
+  // Session expiry countdown
+  useEffect(() => {
+    if (!sessionWarning) return;
+    sessionCountdownTimer.current = setInterval(() => {
+      setSessionCountdown((c) => {
+        if (c <= 1) { clearInterval(sessionCountdownTimer.current!); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(sessionCountdownTimer.current!);
+  }, [sessionWarning]);
+
   // Attach / detach activity listeners
   useEffect(() => {
     const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
@@ -117,7 +169,7 @@ const [user, setUser] = useState<CurrentUser | null>(null);
   return (
     <>
     {/* Inactivity warning modal */}
-    {showWarning && (
+    {showWarning && !sessionWarning && (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center"
         style={{ background: "rgba(0,0,0,0.5)" }}
@@ -126,7 +178,7 @@ const [user, setUser] = useState<CurrentUser | null>(null);
           <div className="flex justify-center mb-3">
             <AlertTriangle size={36} color="#f59e0b" />
           </div>
-          <h2 className="text-base font-bold text-slate-800 mb-1">Session Expiring</h2>
+          <h2 className="text-base font-bold text-slate-800 mb-1">Still there?</h2>
           <p className="text-sm text-slate-500 mb-4">
             You have been inactive. You will be logged out in{" "}
             <span className="font-bold text-red-600">{countdown}s</span>.
@@ -143,6 +195,29 @@ const [user, setUser] = useState<CurrentUser | null>(null);
               Log Out
             </button>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* Session expiry warning modal */}
+    {sessionWarning && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{ background: "rgba(0,0,0,0.5)" }}
+      >
+        <div className="bg-white rounded-xl shadow-2xl p-6 w-80 text-center">
+          <div className="flex justify-center mb-3">
+            <AlertTriangle size={36} color="#dc2626" />
+          </div>
+          <h2 className="text-base font-bold text-slate-800 mb-1">Session Expiring</h2>
+          <p className="text-sm text-slate-500 mb-4">
+            Your session will expire in{" "}
+            <span className="font-bold text-red-600">{formatSeconds(sessionCountdown)}</span>.
+            You will be automatically logged out.
+          </p>
+          <button onClick={handleLogout} className="btn btn-secondary w-full">
+            Log Out Now
+          </button>
         </div>
       </div>
     )}

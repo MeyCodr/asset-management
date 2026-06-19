@@ -211,7 +211,7 @@ export default function AssignmentsPage() {
   const returned = assignments.filter((a) => a.returnedDate);
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <div className="page-header">
         <div>
           <h1 className="page-title">Assignments</h1>
@@ -256,7 +256,7 @@ export default function AssignmentsPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="card" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
         {loading ? (
           <div className="empty-state text-slate-400">Loading assignments...</div>
         ) : filtered.length === 0 ? (

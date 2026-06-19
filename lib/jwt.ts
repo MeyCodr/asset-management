@@ -15,7 +15,7 @@ export interface TokenPayload {
 export async function signToken(payload: TokenPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("7d")
+    .setExpirationTime("8h")
     .sign(SECRET);
 }
 
