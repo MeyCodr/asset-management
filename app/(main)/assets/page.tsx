@@ -215,7 +215,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <div className="page-header">
         <div>
           <h1 className="page-title">Assets</h1>
@@ -315,7 +315,7 @@ export default function AssetsPage() {
       )}
 
       {/* Table */}
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="card" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
         {loading ? (
           <div className="empty-state text-slate-400">Loading assets...</div>
         ) : assets.length === 0 ? (
