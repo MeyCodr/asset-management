@@ -29,8 +29,6 @@ export async function GET(req: NextRequest) {
       orderBy: { name: "asc" },
     });
 
-    console.log("employees: ", employees);
-
     return NextResponse.json(employees);
   } catch (error) {
     console.error(error);
