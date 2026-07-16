@@ -60,6 +60,7 @@ const nextConfig: NextConfig = {
     sri: {
       algorithm: "sha256",
     },
+    turbopackFileSystemCacheForDev: false,
   },
   async headers() {
     return [

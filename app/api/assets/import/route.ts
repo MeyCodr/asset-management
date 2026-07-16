@@ -150,6 +150,8 @@ export async function POST(req: NextRequest) {
               where: { id: asset.id },
               data:  { status: "Check Out" },
             });
+          } else {
+            errors.push(`Row ${rowNum}: No employee found for ${staffId ? `Staff ID "${staffId}"` : `Current User "${userName}"`} — asset imported without assignment.`);
           }
         }
 

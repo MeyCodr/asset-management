@@ -7,7 +7,7 @@ import { BASE_PATH } from "@/lib/utils";
 
 const TEMPLATE_HEADERS = [
   "Asset Tag", "Name", "Brand", "Model", "Serial Number",
-  "Condition", "Asset Status", "Office License", "Category",
+  "Condition", "Asset Status", "Staff ID", "Current User", "Office License", "Category",
   "Location", "Purchase Date", "Purchase Cost", "Vendor",
   "Warranty Expiry", "IP Address", "MAC Address", "OS",
   "Processor", "RAM", "Storage", "Notes",
@@ -15,7 +15,7 @@ const TEMPLATE_HEADERS = [
 
 const TEMPLATE_EXAMPLE = [
   "PHN-0001", "Dell Latitude 5540", "Dell", "Latitude 5540", "SN-12345",
-  "Check In", "Purchase", "Microsoft 365", "Laptop",
+  "Check In", "Purchase", "S12345", "John Doe", "Microsoft 365", "Laptop",
   "Office Floor 3", "2024-01-15", "4500", "Dell Technologies",
   "2027-01-15", "192.168.1.10", "00:1A:2B:3C:4D:5E", "Windows 11 Pro",
   "Intel Core i7", "16GB DDR4", "512GB NVMe SSD", "",
