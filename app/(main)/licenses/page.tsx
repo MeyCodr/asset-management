@@ -447,7 +447,7 @@ export default function LicensesPage() {
                 <th>License Type</th>
                 <th>Cost (RM)</th>
                 <th>Status</th>
-                <th style={{ width: 80 }}>Actions</th>
+                <th className="sticky-col" style={{ width: 80 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -483,7 +483,7 @@ export default function LicensesPage() {
                       {l.status.toUpperCase()}
                     </span>
                   </td>
-                  <td>
+                  <td className="sticky-col">
                     <div className="flex items-center gap-1">
                       <button
                         className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-blue-600"

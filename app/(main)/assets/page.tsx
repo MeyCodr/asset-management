@@ -347,10 +347,9 @@ export default function AssetsPage() {
                 <SortHeader label="Asset Status"     colKey="assetStatus" />
                 <SortHeader label="Office License"   colKey="officeLicense" />
                 <SortHeader label="Assigned To"      colKey="assignedTo" />
-                <SortHeader label="Location"         colKey="location" />
                 <SortHeader label="Purchase Date"      colKey="purchaseDate" />
                 <SortHeader label="Warranty"         colKey="warrantyExpiry" />
-                <th style={{ width: 100 }}>Actions</th>
+                <th className="sticky-col" style={{ width: 100 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -403,15 +402,12 @@ export default function AssetsPage() {
                     )}
                   </td>
                   <td className="text-sm text-slate-600">
-                    {asset.location ?? "—"}
-                  </td>
-                  <td className="text-sm text-slate-600">
                     {formatDate(asset.purchaseDate)}
                   </td>
                   <td className="text-sm text-slate-600">
                     {formatDate(asset.warrantyExpiry)}
                   </td>
-                  <td>
+                  <td className="sticky-col">
                     <div className="flex items-center gap-1">
                       <button
                         className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700"

@@ -275,7 +275,7 @@ export default function AssignmentsPage() {
                 <th>Assigned Date</th>
                 <th>Returned Date</th>
                 <th>Status</th>
-                <th style={{ width: 80 }}>Actions</th>
+                <th className="sticky-col" style={{ width: 80 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -301,7 +301,7 @@ export default function AssignmentsPage() {
                       {a.returnedDate ? "Returned" : "Active"}
                     </span>
                   </td>
-                  <td>
+                  <td className="sticky-col">
                     <div className="flex items-center gap-1">
                       {!a.returnedDate && (
                         <button

@@ -136,7 +136,8 @@ body {
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   white-space: nowrap;
 }
 
@@ -162,6 +163,21 @@ td {
 }
 
 tr:hover td {
+  background: #f9fafb;
+}
+
+.sticky-col {
+  position: sticky;
+  right: 0;
+  background: white;
+  box-shadow: -6px 0 6px -6px rgba(0, 0, 0, 0.15);
+}
+
+th.sticky-col {
+  background: #f9fafb;
+}
+
+tr:hover td.sticky-col {
   background: #f9fafb;
 }
 
