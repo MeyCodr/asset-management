@@ -153,6 +153,38 @@ model NotificationLog {
   @@map("notificationlog")
 }
 
+model Expense {
+  id               String    @id @default(cuid())
+  nature           String
+  category         String
+  subCategory      String?
+  amp              String?
+  costCtr          String?
+  supplier         String
+  dateEntry        DateTime?
+  phnRefLetter     String?
+  agreementPo      String?
+  typeOfRenewal    String?
+  quotationNo      String?
+  invoiceNo        String?
+  doNo             String?
+  services         String?
+  description      String?   @db.Text
+  licenseProductId String?
+  qty              Float?
+  unitPrice        Float?
+  unit             String?
+  subTotalRm       Float?
+  sstRm            Float?
+  sstTotalRm       Float?
+  grandTotalRm     Float?
+  effectiveDate    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("expense")
+}
+
 model SoftwareLicense {
   id            String    @id @default(cuid())
   name          String

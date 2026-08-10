@@ -157,21 +157,22 @@ export default function AssetModal({
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 720 }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 720 }}>
+        <div className="modal-pinned-header">
           <h2 className="modal-title">{isEdit ? "Edit Asset" : "Add New Asset"}</h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-            {error}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="flex flex-col" style={{ flex: 1, minHeight: 0 }}>
+          <div className="modal-scroll-body">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
           {/* Basic Info */}
           <div className="detail-section-title mb-3">Basic Information</div>
           <div className="form-grid mb-4">
@@ -449,8 +450,9 @@ export default function AssetModal({
               />
             </div>
           </div>
+          </div>
 
-          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+          <div className="modal-pinned-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>

@@ -82,15 +82,16 @@ function NewAssignmentModal({ assets, employees, onClose, onSaved }: NewAssignme
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 480 }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 480 }}>
+        <div className="modal-pinned-header">
           <h2 className="modal-title">Assign Asset</h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}><X size={18} /></button>
         </div>
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
-        )}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col" style={{ flex: 1, minHeight: 0 }}>
+          <div className="modal-scroll-body">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
+          )}
           <div className="space-y-4">
             <div>
               <label className="form-label">Asset *</label>
@@ -126,7 +127,8 @@ function NewAssignmentModal({ assets, employees, onClose, onSaved }: NewAssignme
               <textarea name="notes" value={form.notes} onChange={handleChange} className="form-input" placeholder="Optional notes..." />
             </div>
           </div>
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+          </div>
+          <div className="modal-pinned-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? "Saving..." : "Assign Asset"}

@@ -58,8 +58,8 @@ export default function AssetDetailModal({ asset, onClose, onEdit }: Props) {
       className="modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal" style={{ maxWidth: 680 }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 680 }}>
+        <div className="modal-pinned-header">
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm text-blue-600 font-semibold">
@@ -88,6 +88,7 @@ export default function AssetDetailModal({ asset, onClose, onEdit }: Props) {
           </div>
         </div>
 
+        <div className="modal-scroll-body">
         {/* Basic */}
         <div className="detail-section">
           <div className="detail-section-title">Basic Information</div>
@@ -197,6 +198,7 @@ export default function AssetDetailModal({ asset, onClose, onEdit }: Props) {
             <p className="text-sm text-slate-600">{asset.notes}</p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

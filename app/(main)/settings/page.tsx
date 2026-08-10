@@ -443,8 +443,8 @@ export default function SettingsPage() {
       {/* Import Preview Modal */}
       {showImportModal && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowImportModal(false)}>
-          <div className="modal" style={{ maxWidth: 620, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
-            <div className="modal-header">
+          <div className="modal modal-shell" style={{ maxWidth: 620, maxHeight: "80vh" }}>
+            <div className="modal-pinned-header">
               <h2 className="modal-title flex items-center gap-2">
                 <FileSpreadsheet size={18} /> Import Departments
               </h2>
@@ -454,7 +454,7 @@ export default function SettingsPage() {
             </div>
 
             {importResult ? (
-              <div className="py-4">
+              <div className="modal-scroll-body">
                 <div className="p-4 rounded-lg bg-green-50 text-green-800 text-sm mb-3" style={{ border: "1px solid #bbf7d0" }}>
                   <div className="font-semibold mb-1">Import complete</div>
                   <div>{importResult.imported} department{importResult.imported !== 1 ? "s" : ""} imported · {importResult.skipped} skipped</div>
@@ -474,41 +474,43 @@ export default function SettingsPage() {
               </div>
             ) : (
               <>
-                <div className="text-sm text-slate-500 mb-3">
-                  {importRows.length} row{importRows.length !== 1 ? "s" : ""} detected ·{" "}
-                  <span className="text-green-600">{importRows.filter((r) => r.valid).length} valid</span>
-                  {importRows.some((r) => !r.valid) && (
-                    <span className="text-red-500"> · {importRows.filter((r) => !r.valid).length} invalid</span>
-                  )}
-                </div>
-                <div className="text-xs text-slate-400 mb-3">
-                  Expected columns: <code className="bg-slate-100 px-1 rounded">name</code> and <code className="bg-slate-100 px-1 rounded">code</code> (row 1 should be headers)
-                </div>
-                <div className="overflow-auto flex-1 rounded-lg" style={{ border: "1px solid #e2e8f0" }}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Department Name</th>
-                        <th>Code</th>
-                        <th style={{ width: 120 }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {importRows.map((row, i) => (
-                        <tr key={i} style={{ opacity: row.valid ? 1 : 0.6 }}>
-                          <td className="text-sm">{row.name || <span className="text-slate-400 italic">empty</span>}</td>
-                          <td className="font-mono text-sm">{row.code || <span className="text-slate-400 italic">empty</span>}</td>
-                          <td>
-                            {row.valid
-                              ? <span className="badge bg-green-100 text-green-700">Ready</span>
-                              : <span className="badge bg-red-100 text-red-600" title={row.reason}>{row.reason}</span>}
-                          </td>
+                <div className="flex flex-col" style={{ flex: 1, minHeight: 0, padding: "1.25rem 1.5rem", overflow: "hidden" }}>
+                  <div className="text-sm text-slate-500 mb-3">
+                    {importRows.length} row{importRows.length !== 1 ? "s" : ""} detected ·{" "}
+                    <span className="text-green-600">{importRows.filter((r) => r.valid).length} valid</span>
+                    {importRows.some((r) => !r.valid) && (
+                      <span className="text-red-500"> · {importRows.filter((r) => !r.valid).length} invalid</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-400 mb-3">
+                    Expected columns: <code className="bg-slate-100 px-1 rounded">name</code> and <code className="bg-slate-100 px-1 rounded">code</code> (row 1 should be headers)
+                  </div>
+                  <div className="overflow-auto flex-1 rounded-lg" style={{ border: "1px solid #e2e8f0" }}>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Department Name</th>
+                          <th>Code</th>
+                          <th style={{ width: 120 }}>Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {importRows.map((row, i) => (
+                          <tr key={i} style={{ opacity: row.valid ? 1 : 0.6 }}>
+                            <td className="text-sm">{row.name || <span className="text-slate-400 italic">empty</span>}</td>
+                            <td className="font-mono text-sm">{row.code || <span className="text-slate-400 italic">empty</span>}</td>
+                            <td>
+                              {row.valid
+                                ? <span className="badge bg-green-100 text-green-700">Ready</span>
+                                : <span className="badge bg-red-100 text-red-600" title={row.reason}>{row.reason}</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                <div className="modal-pinned-footer">
                   <button className="btn btn-secondary" onClick={() => setShowImportModal(false)}>Cancel</button>
                   <button className="btn btn-primary" onClick={handleBulkImport}
                     disabled={importing || importRows.filter((r) => r.valid).length === 0}>

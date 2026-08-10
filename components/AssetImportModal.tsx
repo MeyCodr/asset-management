@@ -116,14 +116,15 @@ export default function AssetImportModal({ onClose, onImported }: Props) {
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 680 }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 680 }}>
+        <div className="modal-pinned-header">
           <h2 className="modal-title flex items-center gap-2">
             <FileSpreadsheet size={18} /> Import Assets from Excel / CSV
           </h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}><X size={18} /></button>
         </div>
 
+        <div className="modal-scroll-body">
         {/* Template download */}
         <div
           className="flex items-center justify-between p-3 rounded-lg mb-4 text-sm"
@@ -246,7 +247,9 @@ export default function AssetImportModal({ onClose, onImported }: Props) {
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        </div>
+
+        <div className="modal-pinned-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           {rows.length > 0 && !result && (
             <button className="btn btn-primary" onClick={handleImport} disabled={importing}>

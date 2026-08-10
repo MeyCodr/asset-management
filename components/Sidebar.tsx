@@ -15,16 +15,43 @@ import {
   LogOut,
   UserCog,
   AlertTriangle,
+  Receipt,
+  Landmark,
+  ChevronDown,
+  ChevronUp,
+  Table2,
 } from "lucide-react";
 import { BASE_PATH } from "@/lib/utils";
 
-const navItems = [
+interface NavChild {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+}
+
+interface NavItem {
+  href?: string;
+  label: string;
+  icon: React.ElementType;
+  children?: NavChild[];
+}
+
+const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/assets", label: "Assets", icon: Monitor },
   { href: "/employees", label: "Employees", icon: Users },
   { href: "/assignments", label: "Assignments", icon: ArrowLeftRight },
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/licenses", label: "Licenses", icon: Key },
+  {
+    label: "IT Expenses",
+    icon: Receipt,
+    children: [
+      { href: "/expenses/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/expenses", label: "Expense Records", icon: Table2 },
+    ],
+  },
+  { href: "/fin-assets", label: "IT Fin Asset", icon: Landmark },
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
@@ -47,9 +74,15 @@ function formatSeconds(s: number) {
   return `${s}s`;
 }
 
+function isGroupActive(item: NavItem, pathname: string): boolean {
+  if (!item.children) return false;
+  return item.children.some((c) => pathname === c.href);
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 const [user, setUser] = useState<CurrentUser | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_S);
@@ -61,6 +94,22 @@ const [user, setUser] = useState<CurrentUser | null>(null);
   const sessionWarnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionLogoutTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionCountdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-expand a submenu group when navigating to one of its child routes
+  useEffect(() => {
+    const active = navItems.find((item) => isGroupActive(item, pathname));
+    if (active) {
+      setExpandedGroups((prev) => new Set(prev).add(active.label));
+    }
+  }, [pathname]);
+
+  function toggleGroup(label: string) {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      next.has(label) ? next.delete(label) : next.add(label);
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetch(`${BASE_PATH}/api/auth/me`)
@@ -247,9 +296,51 @@ const [user, setUser] = useState<CurrentUser | null>(null);
         <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-3 mb-3">
           Main Menu
         </div>
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {navItems.map((item) => {
+          if (item.children) {
+            const isOpen = expandedGroups.has(item.label);
+            const isActive = isGroupActive(item, pathname);
+            const GroupIcon = item.icon;
+            return (
+              <div key={item.label}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(item.label)}
+                  className={`sidebar-link w-full ${isActive ? "active" : ""}`}
+                  style={{ background: "none", border: "none", cursor: "pointer", justifyContent: "space-between" }}
+                >
+                  <span className="flex items-center gap-3">
+                    <GroupIcon size={17} />
+                    {item.label}
+                  </span>
+                  {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+                {isOpen && (
+                  <div className="mt-0.5 space-y-0.5">
+                    {item.children.map((child) => {
+                      const childActive = pathname === child.href;
+                      const ChildIcon = child.icon;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`sidebar-link text-sm ${childActive ? "active" : ""}`}
+                          style={{ paddingLeft: "2.25rem" }}
+                        >
+                          <ChildIcon size={15} />
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          const href = item.href!;
+          const Icon = item.icon;
+          const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link
               key={href}
@@ -257,7 +348,7 @@ const [user, setUser] = useState<CurrentUser | null>(null);
               className={`sidebar-link ${isActive ? "active" : ""}`}
             >
               <Icon size={17} />
-              {label}
+              {item.label}
             </Link>
           );
         })}

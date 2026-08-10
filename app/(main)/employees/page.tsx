@@ -81,19 +81,20 @@ function EmployeeModal({ employee, departments, onClose, onSaved }: ModalProps) 
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 480 }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 480 }}>
+        <div className="modal-pinned-header">
           <h2 className="modal-title">{isEdit ? "Edit Employee" : "Add Employee"}</h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col" style={{ flex: 1, minHeight: 0 }}>
+          <div className="modal-scroll-body">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              {error}
+            </div>
+          )}
           <div className="space-y-4">
             <div>
               <label className="form-label">Full Name *</label>
@@ -124,7 +125,8 @@ function EmployeeModal({ employee, departments, onClose, onSaved }: ModalProps) 
               </select>
             </div>
           </div>
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+          </div>
+          <div className="modal-pinned-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? "Saving..." : isEdit ? "Save Changes" : "Add Employee"}
@@ -290,16 +292,19 @@ function ADSyncModal({ departments, onClose, onImported }: ADSyncModalProps) {
   }
 
 
+  const showResults = !loading && !error && !importResult && adUsers.length > 0;
+
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 700, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
-        <div className="modal-header">
+      <div className="modal modal-shell" style={{ maxWidth: 700, maxHeight: "80vh" }}>
+        <div className="modal-pinned-header">
           <h2 className="modal-title flex items-center gap-2">
             <Users size={18} /> Sync from Active Directory
           </h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}><X size={18} /></button>
         </div>
 
+        <div className="flex flex-col" style={{ flex: 1, minHeight: 0, padding: "1.25rem 1.5rem", overflow: "hidden" }}>
         {loading && (
           <div className="flex items-center justify-center gap-3 py-12 text-slate-500">
             <Loader size={20} className="animate-spin" /> Connecting to Active Directory...
@@ -331,7 +336,7 @@ function ADSyncModal({ departments, onClose, onImported }: ADSyncModalProps) {
           </div>
         )}
 
-        {!loading && !error && !importResult && adUsers.length > 0 && (
+        {showResults && (
           <>
             {/* Stats + select controls */}
             <div className="flex items-center justify-between mb-3 px-1 flex-wrap gap-2">
@@ -474,26 +479,29 @@ function ADSyncModal({ departments, onClose, onImported }: ADSyncModalProps) {
                 </div>
               </div>
             )}
-
-            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
-              <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-              <button
-                className="btn btn-primary"
-                onClick={handleImport}
-                disabled={selected.size === 0 || importing}
-              >
-                {importing ? (
-                  <><Loader size={14} className="animate-spin" /> Importing...</>
-                ) : (
-                  <><Users size={14} /> Import {selected.size} Employee{selected.size !== 1 ? "s" : ""}</>
-                )}
-              </button>
-            </div>
           </>
         )}
 
         {!loading && !error && !importResult && adUsers.length === 0 && (
           <div className="text-center py-10 text-slate-400">No users found in Active Directory.</div>
+        )}
+        </div>
+
+        {showResults && (
+          <div className="modal-pinned-footer">
+            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button
+              className="btn btn-primary"
+              onClick={handleImport}
+              disabled={selected.size === 0 || importing}
+            >
+              {importing ? (
+                <><Loader size={14} className="animate-spin" /> Importing...</>
+              ) : (
+                <><Users size={14} /> Import {selected.size} Employee{selected.size !== 1 ? "s" : ""}</>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

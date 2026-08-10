@@ -79,3 +79,67 @@ export const CATEGORY_TYPES = [
   "mobile",
   "other",
 ] as const;
+
+export const EXPENSE_NATURES = ["OPEX", "CAPEX"] as const;
+
+export const EXPENSE_COST_CENTERS = ["16IPD", "16ISI", "16IAP"] as const;
+
+export const EXPENSE_RENEWAL_TYPES = [
+  "Annual",
+  "One Time Purchase",
+  "Monthly",
+  "Quarterly",
+  "Half Yearly",
+  "Biennial",
+  "Contract",
+  "Project Based",
+] as const;
+
+export const EXPENSE_UNITS = ["Lot", "Per Month", "Per Qtr", "Per Year"] as const;
+
+export const EXPENSE_SST_RATE = 0.08;
+
+export const EXPENSE_SST_RATES = [0, 0.06, 0.08] as const;
+
+export function expenseYearOptions(): string[] {
+  const currentYear = new Date().getFullYear();
+  const years: string[] = [];
+  for (let y = currentYear + 5; y >= currentYear - 2; y--) years.push(String(y));
+  return years;
+}
+
+export const EXPENSE_CATEGORIES = [
+  {
+    name: "Cloud",
+    subCategories: ["Managed Cloud Services/Hosting", "Others"],
+  },
+  {
+    name: "Cybersecurity",
+    subCategories: [
+      "Cybersecurity Services (General)",
+      "Application Security",
+      "Endpoint Security",
+      "Network Security",
+      "Others",
+    ],
+  },
+  {
+    name: "Hardware",
+    subCategories: ["Printing/Peripheral", "End-User Computing", "Accessories/Others"],
+  },
+  {
+    name: "Internet Connectivity",
+    subCategories: ["SDWAN", "Internet Broadband", "Others"],
+  },
+  {
+    name: "Software",
+    subCategories: [
+      "ERP Related",
+      "HR & Corporate Services",
+      "Business Productivity - IT",
+      "Business Productivity - Tech",
+      "Service Mgmt - IT",
+      "Service Mgmt - Non IT",
+    ],
+  },
+] as const;

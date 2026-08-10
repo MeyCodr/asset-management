@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.1",
+    "exceljs": "^4.4.0",
     "jose": "^6.2.2",
     "ldapts": "^8.1.7",
     "lucide-react": "^1.8.0",
