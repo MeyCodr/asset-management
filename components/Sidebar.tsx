@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
   Table2,
+  History,
 } from "lucide-react";
 import { BASE_PATH } from "@/lib/utils";
 
@@ -51,7 +52,14 @@ const navItems: NavItem[] = [
       { href: "/expenses", label: "Expense Records", icon: Table2 },
     ],
   },
-  { href: "/fin-assets", label: "IT Fin Asset", icon: Landmark },
+  {
+    label: "IT Fin Asset",
+    icon: Landmark,
+    children: [
+      { href: "/fin-assets/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/fin-assets", label: "Finance Asset", icon: Table2 },
+    ],
+  },
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
@@ -292,7 +300,7 @@ const [user, setUser] = useState<CurrentUser | null>(null);
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto scroll-dark" style={{ minHeight: 0 }}>
         <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-3 mb-3">
           Main Menu
         </div>
@@ -373,6 +381,16 @@ const [user, setUser] = useState<CurrentUser | null>(null);
           >
             <UserCog size={17} />
             User Management
+          </Link>
+        )}
+
+        {user?.role === "admin" && (
+          <Link
+            href="/audit-log"
+            className={`sidebar-link ${pathname.startsWith("/audit-log") ? "active" : ""}`}
+          >
+            <History size={17} />
+            Audit Log
           </Link>
         )}
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { friendlyImportRowError } from "@/lib/api-errors";
 
 // Case-insensitive, trimmed key lookup — handles extra spaces or different casing in Excel headers
 function col(row: Record<string, string>, ...keys: string[]): string {
@@ -98,7 +99,8 @@ export async function POST(req: NextRequest) {
         });
         imported++;
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Unknown error";
+        console.error(`Expense import row ${rowNum} failed:`, err);
+        const msg = friendlyImportRowError(err);
         errors.push(`Row ${rowNum}: ${msg}`);
         skipped++;
       }

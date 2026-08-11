@@ -216,7 +216,7 @@ export default function ReportsPage() {
       {/* Alert Tables */}
       <div className="grid grid-cols-2 gap-6 mb-6">
         {/* Warranty expiring */}
-        <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+        <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <AlertTriangle size={16} color="#f59e0b" />
             <h3 className="font-semibold text-sm text-slate-700">
@@ -260,7 +260,7 @@ export default function ReportsPage() {
         </div>
 
         {/* License expiring */}
-        <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+        <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <AlertTriangle size={16} color="#ef4444" />
             <h3 className="font-semibold text-sm text-slate-700">
@@ -323,7 +323,7 @@ export default function ReportsPage() {
         }
 
         return (
-          <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+          <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
             <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-semibold text-sm text-slate-700">
                 Complete Asset Registry ({assets.length})

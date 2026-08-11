@@ -318,7 +318,7 @@ export default function ExpensesPage() {
         )}
       </div>
 
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
         <table>
           <thead>
             <tr>

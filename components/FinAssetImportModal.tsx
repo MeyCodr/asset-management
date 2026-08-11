@@ -3,34 +3,19 @@
 import { useState, useRef } from "react";
 import { X, Upload, Download, AlertTriangle, CheckCircle, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { BASE_PATH } from "@/lib/utils";
 
 const TEMPLATE_HEADERS = [
-  "Supplier",
-  "Official Ref Letter",
-  "Letter Ref Date",
-  "Description",
-  "Period Renewal Start",
-  "Period Renewal End",
-  "IT Section",
-  "Status",
-  "License Type",
-  "Cost (RM)",
-  "Notes",
+  "FIN Asset TAG", "Asset Category", "IT Asset ID", "Asset Type", "Asset Status",
+  "Serial Number/Lic", "Brand", "Model", "OS", "Qty", "Department", "Plant",
+  "Approved FIN CAPEX No", "Date of Purchase", "Purchase Order", "Total Amount (RM)", "Supplier",
 ];
 
 const TEMPLATE_EXAMPLE = [
-  "ACAD SYSTEM SDN BHD",
-  "PHN/IT_ADMIN/ACAD/2025/01",
-  "2025-06-24",
-  "AUTODESK PDMC RENEWAL",
-  "2025-07-07",
-  "2026-07-06",
-  "IT ADMIN",
-  "On Going",
-  "Subscription",
-  "5000",
-  "",
+  "FIN-0011", "Laptop", "IT-LAP-DELLATITUDE5540", "Hardware", "Check Out",
+  "SN-LAP-02021", "Dell", "Latitude 5540", "Windows 11 Pro", "1", "IT", "PHNSA",
+  "FC-2026-010", "2026-03-15", "PO-88240", "5500.00", "Dell Malaysia",
 ];
 
 interface Props {
@@ -40,7 +25,7 @@ interface Props {
 
 type ParsedRow = Record<string, string>;
 
-export default function LicenseImportModal({ onClose, onImported }: Props) {
+export default function FinAssetImportModal({ onClose, onImported }: Props) {
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
   const [importing, setImporting] = useState(false);
@@ -48,12 +33,29 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
   const [parseError, setParseError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function downloadTemplate() {
-    const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, TEMPLATE_EXAMPLE]);
-    ws["!cols"] = TEMPLATE_HEADERS.map(() => ({ wch: 24 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Licenses");
-    XLSX.writeFile(wb, "license_import_template.xlsx");
+  async function downloadTemplate() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Financial Assets");
+    worksheet.addTable({
+      name: "FinAssetTemplateTable",
+      ref: "A1",
+      headerRow: true,
+      style: { theme: "TableStyleMedium9", showRowStripes: true },
+      columns: TEMPLATE_HEADERS.map((h) => ({ name: h, filterButton: true })),
+      rows: [TEMPLATE_EXAMPLE],
+    });
+    worksheet.columns.forEach((col) => { col.width = 20; });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "finasset_import_template.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function handleFile(file: File) {
@@ -76,17 +78,15 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
         }
 
         const headers = Object.keys(parsed[0]).map((h) => h.trim().toLowerCase());
-        const hasSupplier = headers.includes("supplier");
-        const hasDesc = headers.includes("description");
-        if (!hasSupplier && !hasDesc) {
-          setParseError('Missing required columns. File must have at least "Supplier" and "Description".');
+        const hasRequired = ["fin asset tag", "asset category"].every((h) => headers.includes(h));
+        if (!hasRequired) {
+          setParseError('Missing required columns. File must have at least "FIN Asset TAG" and "Asset Category".');
           return;
         }
 
-        // Normalize all keys to lowercase+trimmed so lookups are case-insensitive
         const cleaned = parsed.map((row) =>
           Object.fromEntries(
-            Object.entries(row).map(([k, v]) => [k.trim().toLowerCase(), v == null ? "" : String(v)])
+            Object.entries(row).map(([k, v]) => [k, v == null ? "" : String(v)])
           )
         );
         setRows(cleaned);
@@ -107,7 +107,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
     if (rows.length === 0) return;
     setImporting(true);
     try {
-      const res = await fetch(`${BASE_PATH}/api/licenses/import`, {
+      const res = await fetch(`${BASE_PATH}/api/fin-assets/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows }),
@@ -131,7 +131,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
       <div className="modal modal-shell" style={{ maxWidth: 700 }}>
         <div className="modal-pinned-header">
           <h2 className="modal-title flex items-center gap-2">
-            <FileSpreadsheet size={18} /> Import Licenses from Excel / CSV
+            <FileSpreadsheet size={18} /> Import Financial Assets from Excel / CSV
           </h2>
           <button className="p-1 rounded hover:bg-slate-100" onClick={onClose}><X size={18} /></button>
         </div>
@@ -143,8 +143,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
           style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}
         >
           <div className="text-slate-600">
-            Download the template and fill in your license data. <strong>Supplier</strong> and <strong>Description</strong> are required.
-            Period Renewal uses separate Start and End date columns.
+            Download the template and fill in your financial asset data. <strong>FIN Asset TAG</strong> and <strong>Asset Category</strong> are required.
           </div>
           <button className="btn btn-secondary flex items-center gap-1.5 shrink-0 ml-4" onClick={downloadTemplate}>
             <Download size={14} /> Template
@@ -191,7 +190,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
             >
               <CheckCircle size={16} color="#16a34a" />
               <span className="text-green-800">
-                {result.imported} license{result.imported !== 1 ? "s" : ""} imported
+                {result.imported} financial asset{result.imported !== 1 ? "s" : ""} imported
                 {result.skipped > 0 && ` · ${result.skipped} skipped`}
               </span>
             </div>
@@ -229,31 +228,24 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
                 <thead>
                   <tr>
                     <th className="text-xs">#</th>
-                    <th className="text-xs">Supplier</th>
-                    <th className="text-xs">Ref Letter</th>
-                    <th className="text-xs">Description</th>
-                    <th className="text-xs">Period Renewal</th>
-                    <th className="text-xs">IT Section</th>
-                    <th className="text-xs">Status</th>
+                    <th className="text-xs">FIN Asset TAG</th>
+                    <th className="text-xs">Asset Category</th>
+                    <th className="text-xs">Brand</th>
+                    <th className="text-xs">Model</th>
+                    <th className="text-xs">Total Amount (RM)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.slice(0, 10).map((row, i) => {
-                    const start = row["period renewal start"] || row["period renewal"] || "";
-                    const end   = row["period renewal end"]   || "";
-                    const period = start && end ? `${start}~${end}` : start || end || "—";
-                    return (
-                      <tr key={i}>
-                        <td className="text-xs text-slate-400">{i + 1}</td>
-                        <td className="text-xs font-medium">{row["supplier"] || "—"}</td>
-                        <td className="text-xs font-mono text-slate-500">{row["official ref letter"] || "—"}</td>
-                        <td className="text-xs">{row["description"] || "—"}</td>
-                        <td className="text-xs text-slate-500">{period}</td>
-                        <td className="text-xs">{row["it section"] || "—"}</td>
-                        <td className="text-xs">{row["status"] || "—"}</td>
-                      </tr>
-                    );
-                  })}
+                  {rows.slice(0, 10).map((row, i) => (
+                    <tr key={i}>
+                      <td className="text-xs text-slate-400">{i + 1}</td>
+                      <td className="text-xs">{row["FIN Asset TAG"] || "—"}</td>
+                      <td className="text-xs">{row["Asset Category"] || "—"}</td>
+                      <td className="text-xs font-medium">{row["Brand"] || "—"}</td>
+                      <td className="text-xs">{row["Model"] || "—"}</td>
+                      <td className="text-xs text-slate-500">{row["Total Amount (RM)"] || "—"}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               {rows.length > 10 && (
@@ -264,7 +256,6 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
             </div>
           </div>
         )}
-
         </div>
 
         <div className="modal-pinned-footer">
@@ -274,7 +265,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
               {importing ? (
                 <><span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" /> Importing...</>
               ) : (
-                <><Upload size={14} /> Import {rows.length} License{rows.length !== 1 ? "s" : ""}</>
+                <><Upload size={14} /> Import {rows.length} Financial Asset{rows.length !== 1 ? "s" : ""}</>
               )}
             </button>
           )}

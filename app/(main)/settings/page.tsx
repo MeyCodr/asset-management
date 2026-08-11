@@ -485,7 +485,7 @@ export default function SettingsPage() {
                   <div className="text-xs text-slate-400 mb-3">
                     Expected columns: <code className="bg-slate-100 px-1 rounded">name</code> and <code className="bg-slate-100 px-1 rounded">code</code> (row 1 should be headers)
                   </div>
-                  <div className="overflow-auto flex-1 rounded-lg" style={{ border: "1px solid #e2e8f0" }}>
+                  <div className="overflow-auto flex-1 rounded-lg scroll-light" style={{ border: "1px solid #e2e8f0" }}>
                     <table>
                       <thead>
                         <tr>

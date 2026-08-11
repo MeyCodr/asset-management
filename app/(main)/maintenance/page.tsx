@@ -118,7 +118,7 @@ function AssetSearchDropdown({
           </div>
 
           {/* Results list */}
-          <div style={{ overflowY: "auto", flex: 1 }}>
+          <div className="scroll-light" style={{ overflowY: "auto", flex: 1 }}>
             {filtered.length === 0 ? (
               <div className="px-3 py-4 text-sm text-slate-400 text-center">No assets found.</div>
             ) : (
@@ -380,7 +380,7 @@ export default function MaintenancePage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
         {loading ? (
           <div className="empty-state text-slate-400">Loading records...</div>
         ) : filtered.length === 0 ? (

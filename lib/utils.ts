@@ -80,6 +80,34 @@ export const CATEGORY_TYPES = [
   "other",
 ] as const;
 
+export const FIN_ASSET_TYPES = [
+  "Hardware",
+  "Software",
+  "Peripheral",
+  "Network",
+  "Mobile",
+  "Other",
+] as const;
+
+export const FIN_ASSET_CATEGORIES = [
+  "Projector",
+  "Software",
+  "Desktop",
+  "Laptop",
+  "Desktop Workstation",
+  "Laptop Workstation",
+] as const;
+
+export const FIN_ASSET_PLANTS = [
+  "PHNSA",
+  "PHNSA2",
+  "PHNFIF",
+  "PHNPKN",
+  "PHNTGM",
+  "PHNPGH",
+  "PHNBB",
+] as const;
+
 export const EXPENSE_NATURES = ["OPEX", "CAPEX"] as const;
 
 export const EXPENSE_COST_CENTERS = ["16IPD", "16ISI", "16IAP"] as const;

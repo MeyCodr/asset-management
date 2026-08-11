@@ -206,3 +206,44 @@ model SoftwareLicense {
 
   @@map("softwarelicense")
 }
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  entityLabel String?
+  action      String
+  userId      String?
+  userName    String?
+  changes     String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("auditlog")
+}
+
+model FinAsset {
+  id                 String    @id @default(cuid())
+  finAssetTag        String    @unique
+  assetCategory      String
+  itAssetId          String?
+  assetType          String?
+  assetStatus        String?
+  serialNumberLic    String?
+  brand              String?
+  model              String?
+  os                 String?
+  qty                Int?
+  department         String?
+  plant              String?
+  approvedFinCapexNo String?
+  dateOfPurchase     DateTime?
+  purchaseOrder      String?
+  totalAmountRm      Float?
+  supplier           String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@map("finasset")
+}

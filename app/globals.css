@@ -30,6 +30,21 @@ body {
   box-sizing: border-box;
 }
 
+/* Browsers default <button>/<select>/checkbox/radio to the arrow cursor, not a
+   hand — make every native interactive control show a pointer, app-wide. */
+button:not(:disabled),
+[role="button"],
+select,
+input[type="checkbox"],
+input[type="radio"],
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -259,6 +274,28 @@ tr:hover td.sticky-col {
   padding: 1.25rem 1.5rem;
   flex: 1;
   min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.modal-scroll-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-scroll-body::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.modal-scroll-body::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+  background-clip: content-box;
 }
 
 .modal-pinned-footer {
@@ -420,4 +457,57 @@ textarea.form-input {
 .detail-item span {
   font-size: 0.875rem;
   color: #111827;
+}
+
+/* Custom scrollbars — thin, subtle, theme-matched instead of the OS default */
+.scroll-light {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.scroll-light::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-light::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-light::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scroll-light::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+  background-clip: content-box;
+}
+
+.scroll-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+.scroll-dark::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-dark::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.45);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scroll-dark::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.7);
+  background-clip: content-box;
 }

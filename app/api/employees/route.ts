@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,6 +51,17 @@ export async function POST(req: NextRequest) {
       },
       include: { department: true },
     });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "Employee",
+      entityId: employee.id,
+      entityLabel: employee.name,
+      action: "CREATE",
+      user,
+      after: employee,
+    });
+
     return NextResponse.json(employee, { status: 201 });
   } catch (error) {
     console.error(error);

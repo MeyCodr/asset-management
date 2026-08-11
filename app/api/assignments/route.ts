@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,6 +58,16 @@ export async function POST(req: NextRequest) {
     await prisma.asset.update({
       where: { id: body.assetId },
       data: { status: "Check Out" },
+    });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "AssetAssignment",
+      entityId: assignment.id,
+      entityLabel: `${assignment.asset.assetTag} → ${assignment.employee.name}`,
+      action: "CREATE",
+      user,
+      after: assignment,
     });
 
     return NextResponse.json(assignment, { status: 201 });

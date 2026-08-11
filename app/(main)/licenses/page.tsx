@@ -405,7 +405,7 @@ export default function LicensesPage() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
+      <div className="card scroll-light" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
         {loading ? (
           <div className="empty-state text-slate-400">Loading licenses...</div>
         ) : filtered.length === 0 ? (

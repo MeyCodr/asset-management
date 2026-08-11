@@ -360,7 +360,7 @@ function ADSyncModal({ departments, onClose, onImported }: ADSyncModalProps) {
             </div>
 
             {/* Table */}
-            <div className="overflow-auto flex-1 rounded-lg" style={{ border: "1px solid #e2e8f0" }}>
+            <div className="overflow-auto flex-1 rounded-lg scroll-light" style={{ border: "1px solid #e2e8f0" }}>
               <table>
                 <thead>
                   <tr>
@@ -599,7 +599,7 @@ export default function EmployeesPage() {
           </button>
         </div>
       )}
-      <div className="card" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
+      <div className="card scroll-light" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
         {loading ? (
           <div className="empty-state text-slate-400">Loading employees...</div>
         ) : employees.length === 0 ? (

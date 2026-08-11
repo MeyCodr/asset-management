@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,6 +54,16 @@ export async function POST(req: NextRequest) {
         data: { status: "In Repair" },
       });
     }
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "MaintenanceRecord",
+      entityId: record.id,
+      entityLabel: `${record.asset.assetTag} — ${record.type}`,
+      action: "CREATE",
+      user,
+      after: record,
+    });
 
     return NextResponse.json(record, { status: 201 });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function GET(
   _req: NextRequest,
@@ -38,6 +39,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
+    const before = await prisma.asset.findUnique({ where: { id } });
     const asset = await prisma.asset.update({
       where: { id },
       data: {
@@ -66,6 +68,18 @@ export async function PUT(
       },
       include: { category: true, department: true },
     });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "Asset",
+      entityId: asset.id,
+      entityLabel: asset.assetTag,
+      action: "UPDATE",
+      user,
+      before,
+      after: asset,
+    });
+
     return NextResponse.json(asset);
   } catch (error) {
     console.error(error);
@@ -74,12 +88,24 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const before = await prisma.asset.findUnique({ where: { id } });
     await prisma.asset.delete({ where: { id } });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "Asset",
+      entityId: id,
+      entityLabel: before?.assetTag,
+      action: "DELETE",
+      user,
+      before,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(error);

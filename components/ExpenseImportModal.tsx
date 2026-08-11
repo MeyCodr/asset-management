@@ -204,7 +204,7 @@ export default function ExpenseImportModal({ onClose, onImported }: Props) {
                 <div className="px-3 py-2 text-xs font-medium text-red-700" style={{ background: "#fef2f2" }}>
                   {result.errors.length} row{result.errors.length !== 1 ? "s" : ""} had errors:
                 </div>
-                <div className="max-h-32 overflow-y-auto">
+                <div className="max-h-32 overflow-y-auto scroll-light">
                   {result.errors.map((e, i) => (
                     <div key={i} className="px-3 py-1.5 text-xs text-red-600 border-t border-red-100">{e}</div>
                   ))}
@@ -228,7 +228,7 @@ export default function ExpenseImportModal({ onClose, onImported }: Props) {
                 Remove
               </button>
             </div>
-            <div className="rounded-lg overflow-auto" style={{ border: "1px solid #e2e8f0", maxHeight: 220 }}>
+            <div className="rounded-lg overflow-auto scroll-light" style={{ border: "1px solid #e2e8f0", maxHeight: 220 }}>
               <table>
                 <thead>
                   <tr>

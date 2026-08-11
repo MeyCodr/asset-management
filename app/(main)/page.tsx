@@ -329,7 +329,7 @@ export default function Dashboard() {
 
           {/* Recent tables */}
           <div className="grid grid-cols-2 gap-6">
-            <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+            <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h3 className="font-semibold text-sm text-slate-700">
                   Recent Assets
@@ -371,7 +371,7 @@ export default function Dashboard() {
               </table>
             </div>
 
-            <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+            <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h3 className="font-semibold text-sm text-slate-700">
                   Active Assignments

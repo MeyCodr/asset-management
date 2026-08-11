@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function PUT(
   req: NextRequest,
@@ -14,6 +15,7 @@ export async function PUT(
         { status: 400 }
       );
     }
+    const before = await prisma.expense.findUnique({ where: { id } });
     const expense = await prisma.expense.update({
       where: { id },
       data: {
@@ -43,6 +45,18 @@ export async function PUT(
         effectiveDate:    body.effectiveDate     ? new Date(body.effectiveDate)  : null,
       },
     });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "Expense",
+      entityId: expense.id,
+      entityLabel: `${expense.nature} — ${expense.supplier}`,
+      action: "UPDATE",
+      user,
+      before,
+      after: expense,
+    });
+
     return NextResponse.json(expense);
   } catch (error) {
     console.error(error);
@@ -51,12 +65,24 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const before = await prisma.expense.findUnique({ where: { id } });
     await prisma.expense.delete({ where: { id } });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "Expense",
+      entityId: id,
+      entityLabel: before ? `${before.nature} — ${before.supplier}` : undefined,
+      action: "DELETE",
+      user,
+      before,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(error);

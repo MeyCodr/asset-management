@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getActingUser, logAudit } from "@/lib/audit";
 
 export async function GET() {
   try {
@@ -33,6 +34,17 @@ export async function POST(req: NextRequest) {
         notes:         body.notes         || null,
       },
     });
+
+    const user = await getActingUser(req);
+    await logAudit({
+      entityType: "SoftwareLicense",
+      entityId: license.id,
+      entityLabel: license.name,
+      action: "CREATE",
+      user,
+      after: license,
+    });
+
     return NextResponse.json(license, { status: 201 });
   } catch (error) {
     console.error(error);
