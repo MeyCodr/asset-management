@@ -179,7 +179,7 @@ export default function FinAssetsPage() {
   const hasFilters = search || filterCategory || filterType || filterStatus || filterBrand || filterPlant;
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <div className="page-header">
         <div>
           <h1 className="page-title">Finance Asset</h1>
@@ -318,7 +318,7 @@ export default function FinAssetsPage() {
         )}
       </div>
 
-      <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="card scroll-light" style={{ padding: 0, overflowX: "scroll", overflowY: "auto", flex: 1, minHeight: 0 }}>
         <table>
           <thead>
             <tr>

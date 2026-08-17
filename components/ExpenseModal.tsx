@@ -13,6 +13,7 @@ import {
   EXPENSE_SST_RATES,
   expenseYearOptions,
 } from "@/lib/utils";
+import SearchableSelect from "@/components/SearchableSelect";
 
 export interface Expense {
   id: string;
@@ -137,7 +138,13 @@ function FieldInput({
       <label className="form-label">
         {label} {required && "*"}
       </label>
-      {type === "select" ? (
+      {type === "searchable-select" ? (
+        <SearchableSelect
+          options={options ?? []}
+          value={value}
+          onChange={(v) => onChange({ target: { name, value: v } } as unknown as React.ChangeEvent<HTMLSelectElement>)}
+        />
+      ) : type === "select" ? (
         <select name={name} value={value} onChange={onChange} className="form-input" required={required}>
           <option value="">— Select —</option>
           {options?.map((opt) => (
@@ -170,12 +177,51 @@ function SectionTitle({ icon: Icon, children }: { icon: React.ElementType; child
   );
 }
 
+interface LicenseRef {
+  refLetter: string | null;
+  renewalStart: string | null;
+  vendor: string;
+  licenseKey: string | null;
+  name: string;
+}
+
 export default function ExpenseModal({ expense, onClose, onSaved }: Props) {
   const isEdit = !!expense;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState<FormState>(expense ? toFormState(expense) : EMPTY_FORM);
+  const [licenses, setLicenses] = useState<LicenseRef[]>([]);
   const totalsManuallyEdited = useRef(isEdit);
+  const effectiveDateManuallyEdited = useRef(isEdit);
+  const supplierManuallyEdited = useRef(isEdit);
+  const licenseProductIdManuallyEdited = useRef(isEdit);
+  const servicesManuallyEdited = useRef(isEdit);
+
+  useEffect(() => {
+    fetch(`${BASE_PATH}/api/licenses`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: LicenseRef[]) => setLicenses(data))
+      .catch(() => setLicenses([]));
+  }, []);
+
+  const refLetterOptions = Array.from(
+    new Set(licenses.map((l) => l.refLetter).filter((r): r is string => !!r))
+  ).sort();
+
+  // Default Effective Date / Supplier / License-Product ID / Services from the
+  // selected license, until the user overrides any of them directly.
+  useEffect(() => {
+    if (!form.phnRefLetter) return;
+    const license = licenses.find((l) => l.refLetter === form.phnRefLetter);
+    if (!license) return;
+    setForm((f) => ({
+      ...f,
+      effectiveDate: !effectiveDateManuallyEdited.current && license.renewalStart ? license.renewalStart.split("T")[0] : f.effectiveDate,
+      supplier: !supplierManuallyEdited.current && license.vendor ? license.vendor : f.supplier,
+      licenseProductId: !licenseProductIdManuallyEdited.current && license.licenseKey ? license.licenseKey : f.licenseProductId,
+      services: !servicesManuallyEdited.current && license.name ? license.name : f.services,
+    }));
+  }, [form.phnRefLetter, licenses]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -186,6 +232,26 @@ export default function ExpenseModal({ expense, onClose, onSaved }: Props) {
 
   function handleTotalsChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     totalsManuallyEdited.current = true;
+    handleChange(e);
+  }
+
+  function handleEffectiveDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    effectiveDateManuallyEdited.current = true;
+    handleChange(e);
+  }
+
+  function handleSupplierChange(e: React.ChangeEvent<HTMLInputElement>) {
+    supplierManuallyEdited.current = true;
+    handleChange(e);
+  }
+
+  function handleLicenseProductIdChange(e: React.ChangeEvent<HTMLInputElement>) {
+    licenseProductIdManuallyEdited.current = true;
+    handleChange(e);
+  }
+
+  function handleServicesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    servicesManuallyEdited.current = true;
     handleChange(e);
   }
 
@@ -253,11 +319,18 @@ export default function ExpenseModal({ expense, onClose, onSaved }: Props) {
 
   const yearOptions = expenseYearOptions();
 
+  // Include the current value even if it's no longer a valid license ref letter
+  // (legacy data, or the license was since deleted), so editing never silently blanks it.
+  const phnRefLetterOptions =
+    form.phnRefLetter && !refLetterOptions.includes(form.phnRefLetter)
+      ? [...refLetterOptions, form.phnRefLetter].sort()
+      : refLetterOptions;
+
   const referenceFields: FieldConfig[] = [
     { name: "amp", label: "AMP (Year)", type: "select", options: yearOptions },
     { name: "costCtr", label: "Cost Ctr", type: "select", options: EXPENSE_COST_CENTERS },
     { name: "typeOfRenewal", label: "Type of Renewal", type: "select", options: EXPENSE_RENEWAL_TYPES },
-    { name: "phnRefLetter", label: "PHN Ref Letter" },
+    { name: "phnRefLetter", label: "PHN Ref Letter", type: "searchable-select", options: phnRefLetterOptions },
     { name: "agreementPo", label: "Agreement/PO" },
     { name: "quotationNo", label: "Quotation No" },
     { name: "invoiceNo", label: "Invoice No" },
@@ -265,11 +338,7 @@ export default function ExpenseModal({ expense, onClose, onSaved }: Props) {
   ];
 
   const orderFields: FieldConfig[] = [
-    { name: "supplier", label: "Supplier", required: true },
     { name: "dateEntry", label: "Date Entry", type: "date" },
-    { name: "effectiveDate", label: "Effective Date", type: "date" },
-    { name: "services", label: "Services" },
-    { name: "licenseProductId", label: "License/Product ID" },
   ];
 
   return (
@@ -356,9 +425,61 @@ export default function ExpenseModal({ expense, onClose, onSaved }: Props) {
             <div className="detail-section">
               <SectionTitle icon={Truck}>Order Details</SectionTitle>
               <div className="form-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+                <div>
+                  <label className="form-label">Supplier *</label>
+                  <input
+                    name="supplier"
+                    value={form.supplier}
+                    onChange={handleSupplierChange}
+                    className="form-input"
+                    required
+                  />
+                  {!supplierManuallyEdited.current && form.phnRefLetter && (
+                    <div className="text-xs text-slate-400 mt-1">Defaulted from the license&apos;s Vendor</div>
+                  )}
+                </div>
                 {orderFields.map((field) => (
                   <FieldInput key={field.name} field={field} value={form[field.name]} onChange={handleChange} />
                 ))}
+                <div>
+                  <label className="form-label">Effective Date</label>
+                  <input
+                    name="effectiveDate"
+                    type="date"
+                    value={form.effectiveDate}
+                    onChange={handleEffectiveDateChange}
+                    className="form-input"
+                  />
+                  {!effectiveDateManuallyEdited.current && form.phnRefLetter && (
+                    <div className="text-xs text-slate-400 mt-1">
+                      Defaulted from the license&apos;s Period Renewal Start
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="form-label">Services</label>
+                  <input
+                    name="services"
+                    value={form.services}
+                    onChange={handleServicesChange}
+                    className="form-input"
+                  />
+                  {!servicesManuallyEdited.current && form.phnRefLetter && (
+                    <div className="text-xs text-slate-400 mt-1">Defaulted from the license&apos;s Name</div>
+                  )}
+                </div>
+                <div>
+                  <label className="form-label">License/Product ID</label>
+                  <input
+                    name="licenseProductId"
+                    value={form.licenseProductId}
+                    onChange={handleLicenseProductIdChange}
+                    className="form-input"
+                  />
+                  {!licenseProductIdManuallyEdited.current && form.phnRefLetter && (
+                    <div className="text-xs text-slate-400 mt-1">Defaulted from the license&apos;s License Key</div>
+                  )}
+                </div>
                 <div className="form-grid-full">
                   <label className="form-label">Description</label>
                   <textarea
