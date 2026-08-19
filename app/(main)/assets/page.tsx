@@ -252,7 +252,7 @@ export default function AssetsPage() {
           <Search size={15} color="#9ca3af" />
           <input
             type="text"
-            placeholder="Search by name, tag, serial..."
+            placeholder="Search by name, tag, serial, assigned to..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

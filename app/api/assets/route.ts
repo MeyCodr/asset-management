@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         { assetTag: { contains: search } },
         { serialNumber: { contains: search } },
         { brand: { contains: search } },
+        { assignments: { some: { returnedDate: null, employee: { name: { contains: search } } } } },
       ];
     }
 
