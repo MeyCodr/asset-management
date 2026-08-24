@@ -96,6 +96,7 @@ export const FIN_ASSET_CATEGORIES = [
   "Laptop",
   "Desktop Workstation",
   "Laptop Workstation",
+  "Printer Barcode",
 ] as const;
 
 export const FIN_ASSET_PLANTS = [
