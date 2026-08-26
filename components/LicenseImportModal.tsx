@@ -10,8 +10,11 @@ const TEMPLATE_HEADERS = [
   "Official Ref Letter",
   "Letter Ref Date",
   "Description",
+  "Version",
   "Period Renewal Start",
   "Period Renewal End",
+  "Quantity",
+  "Deployment",
   "IT Section",
   "Status",
   "License Type",
@@ -24,8 +27,11 @@ const TEMPLATE_EXAMPLE = [
   "PHN/IT_ADMIN/ACAD/2025/01",
   "2025-06-24",
   "AUTODESK PDMC RENEWAL",
+  "",
   "2025-07-07",
   "2026-07-06",
+  "7",
+  "7",
   "IT ADMIN",
   "On Going",
   "Subscription",
@@ -44,7 +50,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
+  const [result, setResult] = useState<{ imported: number; updated: number; skipped: number; errors: string[] } | null>(null);
   const [parseError, setParseError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -192,6 +198,7 @@ export default function LicenseImportModal({ onClose, onImported }: Props) {
               <CheckCircle size={16} color="#16a34a" />
               <span className="text-green-800">
                 {result.imported} license{result.imported !== 1 ? "s" : ""} imported
+                {result.updated > 0 && ` · ${result.updated} updated`}
                 {result.skipped > 0 && ` · ${result.skipped} skipped`}
               </span>
             </div>

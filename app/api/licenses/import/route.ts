@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     let imported = 0;
+    let updated = 0;
     let skipped = 0;
     const errors: string[] = [];
 
@@ -74,26 +75,39 @@ export async function POST(req: NextRequest) {
 
       const rawStatus = col(row, "Status");
       const status = rawStatus ? normalizeStatus(rawStatus) : "On Going";
+      const refLetter = col(row, "Official Ref Letter", "Ref Letter") || null;
+
+      const data = {
+        name,
+        vendor,
+        refLetter,
+        refLetterDate: parseDate(col(row, "Letter Ref Date", "Ref Letter Date")),
+        version:       col(row, "Version") || null,
+        renewalStart,
+        renewalEnd,
+        itSection:     col(row, "IT Section") || null,
+        status,
+        licenseType:   col(row, "License Type", "Type") || "Subscription",
+        cost:          col(row, "Cost (RM)", "Cost") ? parseFloat(col(row, "Cost (RM)", "Cost")) : null,
+        totalSeats:    col(row, "Quantity", "Total Seats")  ? parseInt(col(row, "Quantity", "Total Seats"))  : 1,
+        usedSeats:     col(row, "Deployment", "Used Seats") ? parseInt(col(row, "Deployment", "Used Seats")) : 0,
+        notes:         col(row, "Notes") || null,
+      };
 
       try {
-        await (prisma.softwareLicense.create as any)({
-          data: {
-            name,
-            vendor,
-            refLetter:     col(row, "Official Ref Letter", "Ref Letter") || null,
-            refLetterDate: parseDate(col(row, "Letter Ref Date", "Ref Letter Date")),
-            renewalStart,
-            renewalEnd,
-            itSection:     col(row, "IT Section") || null,
-            status,
-            licenseType:   col(row, "License Type", "Type") || "Subscription",
-            cost:          col(row, "Cost (RM)", "Cost") ? parseFloat(col(row, "Cost (RM)", "Cost")) : null,
-            totalSeats:    col(row, "Total Seats") ? parseInt(col(row, "Total Seats")) : 1,
-            usedSeats:     col(row, "Used Seats")  ? parseInt(col(row, "Used Seats"))  : 0,
-            notes:         col(row, "Notes") || null,
-          },
-        });
-        imported++;
+        // Official Ref Letter is the natural unique key for a license renewal record.
+        // Rows without one (or a duplicate within the DB) always insert as new.
+        const existing = refLetter
+          ? await (prisma.softwareLicense.findFirst as any)({ where: { refLetter } })
+          : null;
+
+        if (existing) {
+          await (prisma.softwareLicense.update as any)({ where: { id: existing.id }, data });
+          updated++;
+        } else {
+          await (prisma.softwareLicense.create as any)({ data });
+          imported++;
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Unknown error";
         errors.push(`Row ${rowNum}: ${msg}`);
@@ -101,7 +115,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ imported, skipped, errors });
+    return NextResponse.json({ imported, updated, skipped, errors });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Import failed" }, { status: 500 });

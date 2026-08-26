@@ -191,6 +191,7 @@ model SoftwareLicense {
   vendor        String
   refLetter     String?
   refLetterDate DateTime?
+  version       String?
   renewalStart  DateTime?
   renewalEnd    DateTime?
   itSection     String?
