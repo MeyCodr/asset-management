@@ -17,6 +17,7 @@ export async function PUT(
         vendor:        body.vendor,
         refLetter:     body.refLetter     || null,
         refLetterDate: body.refLetterDate ? new Date(body.refLetterDate) : null,
+        version:       body.version       || null,
         renewalStart:  body.renewalStart  ? new Date(body.renewalStart)  : null,
         renewalEnd:    body.renewalEnd    ? new Date(body.renewalEnd)    : null,
         itSection:     body.itSection     || null,

@@ -1,17 +1,78 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { Suspense, useEffect, useState, FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn } from "lucide-react";
 import { BASE_PATH } from "@/lib/utils";
 import Logo from "@/components/Logo";
 
-export default function LoginPage() {
+// Redirecting after login to a URL supplied by the caller (?redirect=...) is an
+// open-redirect risk if left unchecked, so only same-host (any port — local dev
+// commonly runs each app on a different port) or an explicitly allow-listed
+// production origin may be used as a target.
+function isAllowedRedirectOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return true;
+    const allowed = (process.env.NEXT_PUBLIC_ALLOWED_REDIRECT_ORIGINS ?? "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+    return allowed.includes(url.origin);
+  } catch {
+    return false;
+  }
+}
+
+function safeRedirectTarget(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    return isAllowedRedirectOrigin(url.origin) ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = safeRedirectTarget(searchParams.get("redirect"));
   const [form, setForm] = useState({ staffId: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  function goToTarget() {
+    if (redirectTarget) {
+      window.location.href = redirectTarget;
+    } else {
+      router.push("/");
+    }
+  }
+
+  // Already signed in (e.g. following a link with ?redirect=... while a valid
+  // session cookie is still present) — skip the form and bounce straight through.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE_PATH}/api/auth/me`)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.ok) {
+          goToTarget();
+        } else {
+          setCheckingSession(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCheckingSession(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -32,12 +93,16 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      goToTarget();
     } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingSession) {
+    return null;
   }
 
   return (
@@ -107,5 +172,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

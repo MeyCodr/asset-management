@@ -196,6 +196,16 @@ tr:hover td.sticky-col {
   background: #f9fafb;
 }
 
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+thead th.sticky-col {
+  z-index: 2;
+}
+
 .page-header {
   display: flex;
   align-items: center;

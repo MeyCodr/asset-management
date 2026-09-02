@@ -12,6 +12,7 @@ interface License {
   vendor: string;
   refLetter: string | null;
   refLetterDate: string | null;
+  version: string | null;
   renewalStart: string | null;
   renewalEnd: string | null;
   itSection: string | null;
@@ -69,6 +70,7 @@ function LicenseModal({ license, onClose, onSaved }: ModalProps) {
     vendor:        license?.vendor        ?? "",
     refLetter:     license?.refLetter     ?? "",
     refLetterDate: license?.refLetterDate?.split("T")[0] ?? "",
+    version:       license?.version       ?? "",
     renewalStart:  license?.renewalStart?.split("T")[0]  ?? "",
     renewalEnd:    license?.renewalEnd?.split("T")[0]    ?? "",
     itSection:     license?.itSection     ?? "",
@@ -146,6 +148,10 @@ function LicenseModal({ license, onClose, onSaved }: ModalProps) {
               <input type="date" name="refLetterDate" value={form.refLetterDate} onChange={handleChange} className="form-input" />
             </div>
             <div>
+              <label className="form-label">Version</label>
+              <input name="version" value={form.version} onChange={handleChange} className="form-input" placeholder="e.g. 22.3.0.0" />
+            </div>
+            <div>
               <label className="form-label">Period Renewal Start</label>
               <input type="date" name="renewalStart" value={form.renewalStart} onChange={handleChange} className="form-input" />
             </div>
@@ -170,11 +176,11 @@ function LicenseModal({ license, onClose, onSaved }: ModalProps) {
               <input type="number" name="cost" value={form.cost} onChange={handleChange} className="form-input" step="0.01" />
             </div>
             <div>
-              <label className="form-label">Total Seats</label>
+              <label className="form-label">Quantity</label>
               <input type="number" name="totalSeats" value={form.totalSeats} onChange={handleChange} className="form-input" min="1" />
             </div>
             <div>
-              <label className="form-label">Used Seats</label>
+              <label className="form-label">Deployment</label>
               <input type="number" name="usedSeats" value={form.usedSeats} onChange={handleChange} className="form-input" min="0" />
             </div>
             <div className="form-grid-full">
@@ -439,7 +445,10 @@ export default function LicensesPage() {
                 <th>Official Ref Letter</th>
                 <th>Letter Ref Date</th>
                 <th>Description</th>
+                <th>Version</th>
                 <th>Period Renewal</th>
+                <th>Quantity</th>
+                <th>Deployment</th>
                 <th>
                   <span className="flex items-center gap-1">
                     IT Section
@@ -463,10 +472,13 @@ export default function LicensesPage() {
                   <td className="text-sm font-mono text-slate-600">{l.refLetter ?? "—"}</td>
                   <td className="text-sm text-slate-500">{formatDate(l.refLetterDate)}</td>
                   <td className="text-sm font-medium">{l.name}</td>
+                  <td className="text-sm text-slate-500">{l.version ?? "—"}</td>
                   <td className="text-sm text-slate-600 whitespace-nowrap">
                     <div>{formatPeriod(l.renewalStart, l.renewalEnd)}</div>
                     <ExpiryBadge days={daysLeft(l.renewalEnd)} />
                   </td>
+                  <td className="text-sm text-center">{l.totalSeats}</td>
+                  <td className="text-sm text-center">{l.usedSeats}</td>
                   <td className="text-sm">{l.itSection ?? "—"}</td>
                   <td>
                     <span className="badge bg-blue-50 text-blue-700">{l.licenseType}</span>
