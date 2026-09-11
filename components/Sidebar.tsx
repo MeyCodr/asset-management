@@ -21,6 +21,7 @@ import {
   ChevronUp,
   Table2,
   History,
+  ExternalLink,
 } from "lucide-react";
 import { BASE_PATH } from "@/lib/utils";
 
@@ -61,6 +62,17 @@ const navItems: NavItem[] = [
     ],
   },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+];
+
+// External links grouped under their own sidebar section
+interface ExternalNavItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+}
+
+const systemNavItems: ExternalNavItem[] = [
+  { href: "https://forma.phn.com.my/phn-helpdesk", label: "IT-Helpdesk", icon: ExternalLink },
 ];
 
 // 30 minutes inactivity → show warning; 60 s to act before forced logout
@@ -358,6 +370,25 @@ const [user, setUser] = useState<CurrentUser | null>(null);
               <Icon size={17} />
               {item.label}
             </Link>
+          );
+        })}
+
+        <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-3 mb-3 mt-5">
+          System
+        </div>
+        {systemNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sidebar-link"
+            >
+              <Icon size={17} />
+              {item.label}
+            </a>
           );
         })}
       </nav>
