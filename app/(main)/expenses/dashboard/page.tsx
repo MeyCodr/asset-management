@@ -14,9 +14,8 @@ import {
   Pie,
   Cell,
   Legend,
-  LineChart,
-  Line,
   CartesianGrid,
+  LabelList,
 } from "recharts";
 import { BASE_PATH, formatDate, EXPENSE_NATURES, EXPENSE_CATEGORIES, EXPENSE_COST_CENTERS } from "@/lib/utils";
 import type { Expense } from "@/components/ExpenseModal";
@@ -393,13 +392,15 @@ export default function ExpensesDashboard() {
             <div className="card">
               <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend Trend by Year</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={yearlyTrend} margin={{ top: 0, right: 10, bottom: 0, left: 10 }}>
+                <BarChart data={yearlyTrend} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
+                  <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} minPointSize={3}>
+                    <LabelList dataKey="total" position="top" fontSize={11} formatter={(v) => formatRM(v as number)} />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
 
