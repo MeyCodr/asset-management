@@ -200,15 +200,15 @@ export default function ExpensesDashboard() {
     }, {})
   ).sort((a, b) => b.total - a.total);
 
-  const monthlyTrend = Object.values(
-    filtered.reduce<Record<string, { month: string; total: number }>>((acc, e) => {
+  const yearlyTrend = Object.values(
+    filtered.reduce<Record<string, { year: string; total: number }>>((acc, e) => {
       if (!e.dateEntry) return acc;
-      const key = e.dateEntry.slice(0, 7); // YYYY-MM
-      acc[key] ??= { month: key, total: 0 };
+      const key = e.dateEntry.slice(0, 4); // YYYY
+      acc[key] ??= { year: key, total: 0 };
       acc[key].total += e.grandTotalRm ?? 0;
       return acc;
     }, {})
-  ).sort((a, b) => a.month.localeCompare(b.month));
+  ).sort((a, b) => a.year.localeCompare(b.year));
 
   const recent = [...filtered]
     .sort((a, b) => (b.dateEntry ?? "").localeCompare(a.dateEntry ?? ""))
@@ -391,11 +391,11 @@ export default function ExpensesDashboard() {
             </div>
 
             <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend Trend Over Time</h3>
+              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend Trend by Year</h3>
               <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={monthlyTrend} margin={{ top: 0, right: 10, bottom: 0, left: 10 }}>
+                <LineChart data={yearlyTrend} margin={{ top: 0, right: 10, bottom: 0, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip formatter={(v) => formatRM(v as number)} />
                   <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
