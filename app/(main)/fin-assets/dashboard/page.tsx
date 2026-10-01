@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Landmark, Wallet, Cpu, AppWindow, Filter } from "lucide-react";
+import {
+  Landmark,
+  Wallet,
+  Cpu,
+  AppWindow,
+  BarChart3,
+  Activity,
+  Users,
+  Truck,
+  LineChart as LineIcon,
+  Factory,
+  Shapes,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -10,79 +22,41 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
-  Legend,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
+  LabelList,
 } from "recharts";
+import { format, parseISO } from "date-fns";
 import { BASE_PATH, FIN_ASSET_CATEGORIES, FIN_ASSET_TYPES, ASSET_STATUSES, FIN_ASSET_PLANTS } from "@/lib/utils";
 import type { FinAsset } from "@/components/FinAssetModal";
+import {
+  NEUTRAL,
+  ASSET_STATUS_CHART_COLORS,
+  AXIS_TICK,
+  colorFor,
+  formatRM,
+  formatCompact,
+  ChartTooltip,
+  ChartCard,
+  KpiCard,
+  Donut,
+  DashboardHero,
+  FilterPanel,
+  filterSelectClass,
+} from "@/components/DashboardUI";
 
-// Validated against scripts/validate_palette.js (CVD-safe up to 6 categorical slots)
-const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
-
-function formatRM(n: number): string {
-  return `RM ${n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatCount(n: number): string {
+  return `${n} asset${n !== 1 ? "s" : ""}`;
 }
 
-interface PieLabelProps {
-  cx?: number;
-  cy?: number;
-  midAngle?: number;
-  innerRadius?: number;
-  outerRadius?: number;
-  percent?: number;
-}
-
-// Renders the percent label inside each slice (rather than outside with a leader
-// line) so it can't get clipped by the chart container.
-function renderInsidePercentLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: PieLabelProps) {
-  if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || !percent) {
-    return null;
+function formatMonth(month: string): string {
+  try {
+    return format(parseISO(`${month}-01`), "MMM yy");
+  } catch {
+    return month;
   }
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  return (
-    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600}>
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  subtext,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  subtext?: string;
-}) {
-  return (
-    <div className="stat-card">
-      <div className="stat-icon" style={{ background: color + "20" }}>
-        <Icon size={20} color={color} />
-      </div>
-      <div>
-        <div className="stat-value">{value}</div>
-        <div className="stat-label">{label}</div>
-        {subtext && (
-          <div className="text-xs mt-1" style={{ color }}>
-            {subtext}
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export default function FinAssetsDashboardPage() {
@@ -107,8 +81,11 @@ export default function FinAssetsDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading dashboard...</div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-500">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600" />
+          Loading dashboard...
+        </div>
       </div>
     );
   }
@@ -119,7 +96,8 @@ export default function FinAssetsDashboardPage() {
   const departmentOptions = Array.from(new Set(finAssets.map((f) => f.department).filter((d): d is string => !!d))).sort();
   const supplierOptions = Array.from(new Set(finAssets.map((f) => f.supplier).filter((s): s is string => !!s))).sort();
 
-  const hasFilters = !!(filterCategory || filterType || filterStatus || filterBrand || filterPlant || filterDepartment || filterSupplier);
+  const activeFilterCount = [filterCategory, filterType, filterStatus, filterBrand, filterPlant, filterDepartment, filterSupplier].filter(Boolean).length;
+  const hasFilters = activeFilterCount > 0;
 
   const filtered = finAssets.filter((f) => {
     if (filterCategory && f.assetCategory !== filterCategory) return false;
@@ -206,23 +184,39 @@ export default function FinAssetsDashboardPage() {
     }, {})
   ).sort((a, b) => b.value - a.value);
 
+  const hardwareShare = totalValue > 0 ? (hardwareValue / totalValue) * 100 : 0;
+  const softwareShare = totalValue > 0 ? (softwareValue / totalValue) * 100 : 0;
+
+  function clearFilters() {
+    setFilterCategory("");
+    setFilterType("");
+    setFilterStatus("");
+    setFilterBrand("");
+    setFilterPlant("");
+    setFilterDepartment("");
+    setFilterSupplier("");
+  }
+
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">IT Fin Asset Dashboard</h1>
-          <p className="page-subtitle">Overview of IT financial assets and valuations</p>
-        </div>
-        <Link href="/fin-assets" className="btn btn-primary">
-          <Landmark size={16} /> View Financial Assets
-        </Link>
-      </div>
+      <DashboardHero
+        badgeIcon={Landmark}
+        badge="Finance"
+        title="IT Fin Asset Dashboard"
+        subtitle="Overview of IT financial assets and valuations"
+        metricLabel={hasFilters ? "Filtered value" : "Total asset value"}
+        metricValue={isEmpty ? undefined : formatRM(totalValue)}
+        linkHref="/fin-assets"
+        linkLabel="View Financial Assets"
+        linkIcon={Landmark}
+        gradient="linear-gradient(120deg, #064e3b 0%, #0f766e 40%, #0891b2 72%, #2563eb 100%)"
+      />
 
       {isEmpty ? (
         <div className="card empty-state">
           <Landmark size={48} className="mx-auto mb-3" style={{ color: "#d1d5db" }} />
-          <div className="text-lg font-medium text-slate-700 mb-1">No financial assets yet</div>
-          <div className="text-sm text-slate-500 mb-4">
+          <div className="mb-1 text-lg font-medium text-slate-700">No financial assets yet</div>
+          <div className="mb-4 text-sm text-slate-500">
             Add financial asset records to see valuation trends here.
           </div>
           <Link href="/fin-assets" className="btn btn-primary mx-auto">
@@ -232,202 +226,233 @@ export default function FinAssetsDashboardPage() {
       ) : (
         <>
           {/* Filters */}
-          <div className="filter-bar">
-            <div className="flex items-center gap-1 text-slate-500">
-              <Filter size={15} />
-            </div>
-
-            <select className="form-input" style={{ width: "auto" }} value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+          <FilterPanel activeCount={activeFilterCount} onClear={clearFilters}>
+            <select className={filterSelectClass(!!filterCategory)} style={{ width: "auto" }} value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
               <option value="">All Categories</option>
               {FIN_ASSET_CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+            <select className={filterSelectClass(!!filterType)} style={{ width: "auto" }} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
               <option value="">All Types</option>
               {FIN_ASSET_TYPES.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <select className={filterSelectClass(!!filterStatus)} style={{ width: "auto" }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="">All Statuses</option>
               {ASSET_STATUSES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
+            <select className={filterSelectClass(!!filterBrand)} style={{ width: "auto" }} value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
               <option value="">All Brands</option>
               {brandOptions.map((b) => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterPlant} onChange={(e) => setFilterPlant(e.target.value)}>
+            <select className={filterSelectClass(!!filterPlant)} style={{ width: "auto" }} value={filterPlant} onChange={(e) => setFilterPlant(e.target.value)}>
               <option value="">All Plants</option>
               {FIN_ASSET_PLANTS.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)}>
+            <select className={filterSelectClass(!!filterDepartment)} style={{ width: "auto" }} value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)}>
               <option value="">All Departments</option>
               {departmentOptions.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}>
+            <select className={filterSelectClass(!!filterSupplier)} style={{ width: "auto" }} value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}>
               <option value="">All Suppliers</option>
               {supplierOptions.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-
-            {hasFilters && (
-              <button
-                className="btn btn-secondary text-xs"
-                onClick={() => {
-                  setFilterCategory("");
-                  setFilterType("");
-                  setFilterStatus("");
-                  setFilterBrand("");
-                  setFilterPlant("");
-                  setFilterDepartment("");
-                  setFilterSupplier("");
-                }}
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
+          </FilterPanel>
 
           {filtered.length === 0 ? (
             <div className="card empty-state">
               <Landmark size={48} className="mx-auto mb-3" style={{ color: "#d1d5db" }} />
-              <div className="text-lg font-medium text-slate-700 mb-1">No financial assets match these filters</div>
+              <div className="mb-1 text-lg font-medium text-slate-700">No financial assets match these filters</div>
               <div className="text-sm text-slate-500">Try adjusting or clearing the filters above.</div>
             </div>
           ) : (
           <>
-          {/* Stats */}
-          <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-            <StatCard label="Total Assets" value={filtered.length} icon={Landmark} color="#3b82f6" />
-            <StatCard label="Total Value" value={formatRM(totalValue)} icon={Wallet} color="#10b981" />
-            <StatCard
+          {/* KPIs */}
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiCard
+              label="Total Assets"
+              value={filtered.length.toLocaleString("en-MY")}
+              icon={Landmark}
+              from="#0d9488"
+              to="#0891b2"
+              subtext={hasFilters ? `of ${finAssets.length.toLocaleString("en-MY")} total assets` : "All assets"}
+            />
+            <KpiCard
+              label="Total Value"
+              value={formatRM(totalValue)}
+              icon={Wallet}
+              from="#10b981"
+              to="#65a30d"
+              subtext={filtered.length > 0 ? `Avg ${formatRM(totalValue / filtered.length)} per asset` : undefined}
+            />
+            <KpiCard
               label="Hardware Value"
               value={formatRM(hardwareValue)}
               icon={Cpu}
-              color="#f59e0b"
-              subtext={totalValue > 0 ? `${Math.round((hardwareValue / totalValue) * 100)}% of total` : undefined}
+              from="#2a78d6"
+              to="#6366f1"
+              subtext={totalValue > 0 ? `${Math.round(hardwareShare)}% of total` : undefined}
+              share={hardwareShare}
             />
-            <StatCard
+            <KpiCard
               label="Software Value"
               value={formatRM(softwareValue)}
               icon={AppWindow}
-              color="#8b5cf6"
-              subtext={totalValue > 0 ? `${Math.round((softwareValue / totalValue) * 100)}% of total` : undefined}
+              from="#eb6834"
+              to="#f59e0b"
+              subtext={totalValue > 0 ? `${Math.round(softwareShare)}% of total` : undefined}
+              share={softwareShare}
             />
           </div>
 
           {/* Charts */}
-          <div className="grid gap-6 mb-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Value by Category</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byCategory} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Assets by Status</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={byStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={renderInsidePercentLabel} labelLine={false}>
-                    {byStatus.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+          <div className="mb-6 grid grid-flow-row-dense grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <ChartCard title="Value by Category" icon={BarChart3} accent="#2a78d6">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byCategory} margin={{ top: 20, right: 4, bottom: 0, left: 0 }} barCategoryGap="22%">
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f1f5f9" }} content={<ChartTooltip total={totalValue} />} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]} minPointSize={3}>
+                    {byCategory.map((d) => (
+                      <Cell key={d.name} fill={colorFor(FIN_ASSET_CATEGORIES, d.name)} />
                     ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip formatter={(v) => `${v} asset${v !== 1 ? "s" : ""}`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Value by Department</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byDepartment} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-30} textAnchor="end" height={70} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
 
-            <div className="card" style={{ gridColumn: "span 2" }}>
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Top Suppliers by Value</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={topSuppliers}
-                  layout="vertical"
-                  margin={{ top: 0, right: 20, bottom: 0, left: 10 }}
-                >
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+            <ChartCard title="Value by Department" icon={Users} accent="#eda100">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byDepartment} margin={{ top: 20, right: 4, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="deptGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#fbbf24" />
+                      <stop offset="100%" stopColor="#d97706" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 9 }} interval={0} angle={-30} textAnchor="end" height={70} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#fffbeb" }} content={<ChartTooltip total={totalValue} />} />
+                  <Bar dataKey="total" fill="url(#deptGradient)" radius={[4, 4, 0, 0]} minPointSize={3} maxBarSize={48}>
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
 
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Purchase Value Trend Over Time</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={monthlyTrend} margin={{ top: 0, right: 10, bottom: 0, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartCard title="Assets by Type" icon={Shapes} accent="#e87ba4">
+              <Donut
+                data={byType}
+                colors={(n) => colorFor(FIN_ASSET_TYPES, n)}
+                centerLabel="Assets"
+                centerValue={filtered.length.toLocaleString("en-MY")}
+                format={formatCount}
+              />
+            </ChartCard>
 
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Value by Plant</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byPlant} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#10b981" radius={[4, 4, 0, 0]} />
+            <ChartCard title="Top Suppliers by Value" icon={Truck} accent="#4a3aa7" className="lg:col-span-2">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={topSuppliers} layout="vertical" margin={{ top: 0, right: 56, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="finSupplierGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#a5b4fc" />
+                      <stop offset="100%" stopColor="#4a3aa7" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={150} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "#eef2ff" }} content={<ChartTooltip total={totalValue} />} />
+                  <Bar dataKey="total" fill="url(#finSupplierGradient)" radius={[0, 4, 4, 0]} minPointSize={3} maxBarSize={22}>
+                    <LabelList dataKey="total" position="right" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
 
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Assets by Type</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={byType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={renderInsidePercentLabel} labelLine={false}>
-                    {byType.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+            <ChartCard title="Assets by Status" icon={Activity} accent="#1baf7a">
+              <Donut
+                data={byStatus}
+                colors={(n) => ASSET_STATUS_CHART_COLORS[n] ?? NEUTRAL}
+                centerLabel="Assets"
+                centerValue={filtered.length.toLocaleString("en-MY")}
+                format={formatCount}
+              />
+            </ChartCard>
+
+            <ChartCard title="Purchase Value Trend Over Time" icon={LineIcon} accent="#0891b2" className="lg:col-span-2">
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={monthlyTrend} margin={{ top: 10, right: 12, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0891b2" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#0891b2" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="month" tick={AXIS_TICK} tickFormatter={formatMonth} axisLine={false} tickLine={false} minTickGap={16} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip
+                    cursor={{ stroke: "#94a3b8", strokeDasharray: "4 4" }}
+                    content={({ active, payload, label }) => (
+                      <ChartTooltip
+                        active={active}
+                        payload={payload?.map((p) => ({ value: p.value as number, color: "#0891b2" }))}
+                        label={label != null ? formatMonth(String(label)) : undefined}
+                      />
+                    )}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#0891b2"
+                    strokeWidth={2}
+                    fill="url(#trendGradient)"
+                    dot={{ r: 3, fill: "#fff", stroke: "#0891b2", strokeWidth: 2 }}
+                    activeDot={{ r: 5, fill: "#0891b2", stroke: "#fff", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Value by Plant" icon={Factory} accent="#1baf7a" className="lg:col-span-2 xl:col-span-1">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byPlant} margin={{ top: 20, right: 4, bottom: 0, left: 0 }}>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f1f5f9" }} content={<ChartTooltip total={totalValue} />} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]} minPointSize={3} maxBarSize={48}>
+                    {byPlant.map((d) => (
+                      <Cell key={d.name} fill={colorFor(FIN_ASSET_PLANTS, d.name)} />
                     ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip formatter={(v) => `${v} asset${v !== 1 ? "s" : ""}`} />
-                </PieChart>
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
           </div>
           </>
           )}

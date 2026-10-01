@@ -2,7 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Receipt, DollarSign, TrendingUp, TrendingDown, Filter } from "lucide-react";
+import {
+  Receipt,
+  Wallet,
+  TrendingUp,
+  Building2,
+  PieChart as PieIcon,
+  BarChart3,
+  CalendarRange,
+  Landmark,
+  Truck,
+  RefreshCw,
+  Layers,
+  Percent,
+  Clock,
+  ArrowRight,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -10,78 +25,39 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
-  Legend,
   CartesianGrid,
   LabelList,
 } from "recharts";
-import { BASE_PATH, formatDate, EXPENSE_NATURES, EXPENSE_CATEGORIES, EXPENSE_COST_CENTERS } from "@/lib/utils";
+import {
+  PALETTE,
+  NEUTRAL,
+  AXIS_TICK,
+  colorFor,
+  formatRM,
+  formatCompact,
+  ChartTooltip,
+  ChartCard,
+  KpiCard,
+  Donut,
+  DashboardHero,
+  FilterPanel,
+  filterSelectClass,
+} from "@/components/DashboardUI";
+import {
+  BASE_PATH,
+  formatDate,
+  EXPENSE_NATURES,
+  EXPENSE_CATEGORIES,
+  EXPENSE_COST_CENTERS,
+  EXPENSE_RENEWAL_TYPES,
+} from "@/lib/utils";
 import type { Expense } from "@/components/ExpenseModal";
 
-const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16"];
+const NATURE_COLORS: Record<string, string> = { OPEX: PALETTE[0], CAPEX: PALETTE[1] };
+const COST_COLORS: Record<string, string> = { "Sub Total (RM)": PALETTE[2], "SST (RM)": PALETTE[4] };
 
-function formatRM(n: number): string {
-  return `RM ${n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-interface PieLabelProps {
-  cx?: number;
-  cy?: number;
-  midAngle?: number;
-  innerRadius?: number;
-  outerRadius?: number;
-  percent?: number;
-}
-
-// Renders the percent label inside each slice (rather than outside with a leader
-// line) so it can't get clipped by the chart container.
-function renderInsidePercentLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: PieLabelProps) {
-  if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || !percent) {
-    return null;
-  }
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  return (
-    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600}>
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  subtext,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  subtext?: string;
-}) {
-  return (
-    <div className="stat-card">
-      <div className="stat-icon" style={{ background: color + "20" }}>
-        <Icon size={20} color={color} />
-      </div>
-      <div>
-        <div className="stat-value">{value}</div>
-        <div className="stat-label">{label}</div>
-        {subtext && (
-          <div className="text-xs mt-1" style={{ color }}>
-            {subtext}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+const CATEGORY_NAMES = EXPENSE_CATEGORIES.map((c) => c.name);
 
 export default function ExpensesDashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -104,8 +80,11 @@ export default function ExpensesDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-slate-500">Loading dashboard...</div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-500">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+          Loading dashboard...
+        </div>
       </div>
     );
   }
@@ -117,7 +96,8 @@ export default function ExpensesDashboard() {
   const supplierOptions = Array.from(new Set(expenses.map((e) => e.supplier).filter(Boolean))).sort();
   const serviceOptions = Array.from(new Set(expenses.map((e) => e.services).filter(Boolean))).sort() as string[];
 
-  const hasFilters = !!(filterYear || filterNature || filterCategory || filterSubCategory || filterCostCtr || filterSupplier || filterService);
+  const activeFilterCount = [filterYear, filterNature, filterCategory, filterSubCategory, filterCostCtr, filterSupplier, filterService].filter(Boolean).length;
+  const hasFilters = activeFilterCount > 0;
 
   const filtered = expenses.filter((e) => {
     if (filterYear && e.amp !== filterYear) return false;
@@ -213,23 +193,39 @@ export default function ExpensesDashboard() {
     .sort((a, b) => (b.dateEntry ?? "").localeCompare(a.dateEntry ?? ""))
     .slice(0, 5);
 
+  const opexShare = total > 0 ? (opexTotal / total) * 100 : 0;
+  const capexShare = total > 0 ? (capexTotal / total) * 100 : 0;
+
+  function clearFilters() {
+    setFilterYear("");
+    setFilterNature("");
+    setFilterCategory("");
+    setFilterSubCategory("");
+    setFilterCostCtr("");
+    setFilterSupplier("");
+    setFilterService("");
+  }
+
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">IT Expenses Dashboard</h1>
-          <p className="page-subtitle">Overview of IT department spending</p>
-        </div>
-        <Link href="/expenses" className="btn btn-primary">
-          <Receipt size={16} /> View Expense Records
-        </Link>
-      </div>
+      <DashboardHero
+        badgeIcon={Receipt}
+        badge="IT Department"
+        title="IT Expenses Dashboard"
+        subtitle="Overview of IT department spending"
+        metricLabel={hasFilters ? "Filtered spend" : "Total spend"}
+        metricValue={isEmpty ? undefined : formatRM(total)}
+        linkHref="/expenses"
+        linkLabel="View Expense Records"
+        linkIcon={Receipt}
+        gradient="linear-gradient(120deg, #1e3a8a 0%, #4338ca 45%, #7c3aed 75%, #db2777 100%)"
+      />
 
       {isEmpty ? (
         <div className="card empty-state">
           <Receipt size={48} className="mx-auto mb-3" style={{ color: "#d1d5db" }} />
-          <div className="text-lg font-medium text-slate-700 mb-1">No expenses yet</div>
-          <div className="text-sm text-slate-500 mb-4">
+          <div className="mb-1 text-lg font-medium text-slate-700">No expenses yet</div>
+          <div className="mb-4 text-sm text-slate-500">
             Add expense records to see spending trends here.
           </div>
           <Link href="/expenses" className="btn btn-primary mx-auto">
@@ -239,19 +235,15 @@ export default function ExpensesDashboard() {
       ) : (
         <>
           {/* Filters (Fiscal Year, OPEX/CAPEX, Category/Sub Category, Cost Centre, Supplier, Service) */}
-          <div className="filter-bar">
-            <div className="flex items-center gap-1 text-slate-500">
-              <Filter size={15} />
-            </div>
-
-            <select className="form-input" style={{ width: "auto" }} value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
+          <FilterPanel activeCount={activeFilterCount} onClear={clearFilters}>
+            <select className={filterSelectClass(!!filterYear)} style={{ width: "auto" }} value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
               <option value="">All Years</option>
               {yearOptions.map((y) => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterNature} onChange={(e) => setFilterNature(e.target.value)}>
+            <select className={filterSelectClass(!!filterNature)} style={{ width: "auto" }} value={filterNature} onChange={(e) => setFilterNature(e.target.value)}>
               <option value="">All Natures</option>
               {EXPENSE_NATURES.map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -259,7 +251,7 @@ export default function ExpensesDashboard() {
             </select>
 
             <select
-              className="form-input"
+              className={filterSelectClass(!!filterCategory)}
               style={{ width: "auto" }}
               value={filterCategory}
               onChange={(e) => { setFilterCategory(e.target.value); setFilterSubCategory(""); }}
@@ -271,7 +263,7 @@ export default function ExpensesDashboard() {
             </select>
 
             <select
-              className="form-input"
+              className={filterSelectClass(!!filterSubCategory)}
               style={{ width: "auto" }}
               value={filterSubCategory}
               onChange={(e) => setFilterSubCategory(e.target.value)}
@@ -283,205 +275,212 @@ export default function ExpensesDashboard() {
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterCostCtr} onChange={(e) => setFilterCostCtr(e.target.value)}>
+            <select className={filterSelectClass(!!filterCostCtr)} style={{ width: "auto" }} value={filterCostCtr} onChange={(e) => setFilterCostCtr(e.target.value)}>
               <option value="">All Cost Centres</option>
               {EXPENSE_COST_CENTERS.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}>
+            <select className={filterSelectClass(!!filterSupplier)} style={{ width: "auto" }} value={filterSupplier} onChange={(e) => setFilterSupplier(e.target.value)}>
               <option value="">All Suppliers</option>
               {supplierOptions.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
 
-            <select className="form-input" style={{ width: "auto" }} value={filterService} onChange={(e) => setFilterService(e.target.value)}>
+            <select className={filterSelectClass(!!filterService)} style={{ width: "auto" }} value={filterService} onChange={(e) => setFilterService(e.target.value)}>
               <option value="">All Services</option>
               {serviceOptions.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-
-            {hasFilters && (
-              <button
-                className="btn btn-secondary text-xs"
-                onClick={() => {
-                  setFilterYear("");
-                  setFilterNature("");
-                  setFilterCategory("");
-                  setFilterSubCategory("");
-                  setFilterCostCtr("");
-                  setFilterSupplier("");
-                  setFilterService("");
-                }}
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
+          </FilterPanel>
 
           {filtered.length === 0 ? (
             <div className="card empty-state">
               <Receipt size={48} className="mx-auto mb-3" style={{ color: "#d1d5db" }} />
-              <div className="text-lg font-medium text-slate-700 mb-1">No expenses match these filters</div>
+              <div className="mb-1 text-lg font-medium text-slate-700">No expenses match these filters</div>
               <div className="text-sm text-slate-500">Try adjusting or clearing the filters above.</div>
             </div>
           ) : (
           <>
-          {/* Stats */}
-          <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-            <StatCard
-              label="Total Expenses"
-              value={expenses.length}
+          {/* KPIs */}
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <KpiCard
+              label="Expense Records"
+              value={filtered.length.toLocaleString("en-MY")}
               icon={Receipt}
-              color="#3b82f6"
+              from="#3b82f6"
+              to="#6366f1"
+              subtext={hasFilters ? `of ${expenses.length.toLocaleString("en-MY")} total records` : "All records"}
             />
-            <StatCard
+            <KpiCard
               label="Total Spend"
               value={formatRM(total)}
-              icon={DollarSign}
-              color="#10b981"
+              icon={Wallet}
+              from="#10b981"
+              to="#0d9488"
+              subtext={filtered.length > 0 ? `Avg ${formatRM(total / filtered.length)} per record` : undefined}
             />
-            <StatCard
+            <KpiCard
               label="OPEX"
               value={formatRM(opexTotal)}
               icon={TrendingUp}
-              color="#f59e0b"
-              subtext={total > 0 ? `${Math.round((opexTotal / total) * 100)}% of total` : undefined}
+              from="#2a78d6"
+              to="#06b6d4"
+              subtext={total > 0 ? `${Math.round(opexShare)}% of total` : undefined}
+              share={opexShare}
             />
-            <StatCard
+            <KpiCard
               label="CAPEX"
               value={formatRM(capexTotal)}
-              icon={TrendingDown}
-              color="#8b5cf6"
-              subtext={total > 0 ? `${Math.round((capexTotal / total) * 100)}% of total` : undefined}
+              icon={Building2}
+              from="#eb6834"
+              to="#f59e0b"
+              subtext={total > 0 ? `${Math.round(capexShare)}% of total` : undefined}
+              share={capexShare}
             />
           </div>
 
           {/* Charts */}
-          <div className="grid gap-6 mb-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend by Category</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byCategory} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">OPEX vs CAPEX</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={natureSplit} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={renderInsidePercentLabel} labelLine={false}>
-                    {natureSplit.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+          <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <ChartCard title="Spend by Category" icon={BarChart3} accent="#2a78d6">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byCategory} margin={{ top: 20, right: 4, bottom: 0, left: 0 }} barCategoryGap="22%">
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f1f5f9" }} content={<ChartTooltip total={total} />} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]} minPointSize={3}>
+                    {byCategory.map((d) => (
+                      <Cell key={d.name} fill={colorFor(CATEGORY_NAMES, d.name)} />
                     ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend Trend by Year</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={yearlyTrend} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} minPointSize={3}>
-                    <LabelList dataKey="total" position="top" fontSize={11} formatter={(v) => formatRM(v as number)} />
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
 
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend by Cost Centre</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byCostCtr} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#10b981" radius={[4, 4, 0, 0]} />
+            <ChartCard title="OPEX vs CAPEX" icon={PieIcon} accent="#eb6834">
+              <Donut data={natureSplit} colors={(n) => NATURE_COLORS[n] ?? NEUTRAL} centerLabel="Total" centerValue={`RM ${formatCompact(total)}`} />
+            </ChartCard>
+
+            <ChartCard title="Spend Trend by Year" icon={CalendarRange} accent="#4a3aa7">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={yearlyTrend} margin={{ top: 24, right: 4, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="yearGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7c3aed" />
+                      <stop offset="100%" stopColor="#4a3aa7" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="year" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f5f3ff" }} content={<ChartTooltip />} />
+                  <Bar dataKey="total" name="Spend" fill="url(#yearGradient)" radius={[4, 4, 0, 0]} minPointSize={3} maxBarSize={56}>
+                    <LabelList dataKey="total" position="top" fontSize={11} fill="#475569" formatter={(v) => `RM ${formatCompact(Number(v))}`} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
 
-            <div className="card" style={{ gridColumn: "span 2" }}>
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Top Suppliers by Spend</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={topSuppliers}
-                  layout="vertical"
-                  margin={{ top: 0, right: 20, bottom: 0, left: 10 }}
-                >
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend by Type of Renewal</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={byRenewalType} margin={{ top: 0, right: 0, bottom: 0, left: 10 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Spend by Sub Category</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={bySubCategory}
-                  layout="vertical"
-                  margin={{ top: 0, right: 20, bottom: 0, left: 10 }}
-                >
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="name" type="category" width={130} tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                  <Bar dataKey="total" fill="#06b6d4" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card">
-              <h3 className="font-semibold text-sm text-slate-700 mb-4">Cost Breakdown (Sub Total vs SST)</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={costBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={renderInsidePercentLabel} labelLine={false}>
-                    {costBreakdown.map((_, i) => (
-                      <Cell key={i} fill={[ "#3b82f6", "#ef4444" ][i % 2]} />
+            <ChartCard title="Spend by Cost Centre" icon={Landmark} accent="#1baf7a">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byCostCtr} margin={{ top: 20, right: 4, bottom: 0, left: 0 }}>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f1f5f9" }} content={<ChartTooltip total={total} />} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]} minPointSize={3} maxBarSize={64}>
+                    {byCostCtr.map((d) => (
+                      <Cell key={d.name} fill={colorFor(EXPENSE_COST_CENTERS, d.name)} />
                     ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip formatter={(v) => formatRM(v as number)} />
-                </PieChart>
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
+
+            <ChartCard title="Top Suppliers by Spend" icon={Truck} accent="#e87ba4" className="lg:col-span-2">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={topSuppliers} layout="vertical" margin={{ top: 0, right: 56, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="supplierGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#f9a8d4" />
+                      <stop offset="100%" stopColor="#db2777" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={150} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "#fdf2f8" }} content={<ChartTooltip total={total} />} />
+                  <Bar dataKey="total" fill="url(#supplierGradient)" radius={[0, 4, 4, 0]} minPointSize={3} maxBarSize={22}>
+                    <LabelList dataKey="total" position="right" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Spend by Type of Renewal" icon={RefreshCw} accent="#eda100">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={byRenewalType} margin={{ top: 20, right: 4, bottom: 0, left: 0 }}>
+                  <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                  <YAxis tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip cursor={{ fill: "#f1f5f9" }} content={<ChartTooltip total={total} />} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]} minPointSize={3}>
+                    {byRenewalType.map((d) => (
+                      <Cell key={d.name} fill={colorFor(EXPENSE_RENEWAL_TYPES, d.name)} />
+                    ))}
+                    <LabelList dataKey="total" position="top" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Spend by Sub Category" icon={Layers} accent="#0891b2">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={bySubCategory} layout="vertical" margin={{ top: 0, right: 48, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="subCatGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#67e8f9" />
+                      <stop offset="100%" stopColor="#0e7490" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tick={AXIS_TICK} tickFormatter={formatCompact} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={130} tick={{ ...AXIS_TICK, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "#ecfeff" }} content={<ChartTooltip total={total} />} />
+                  <Bar dataKey="total" fill="url(#subCatGradient)" radius={[0, 4, 4, 0]} minPointSize={3} maxBarSize={20}>
+                    <LabelList dataKey="total" position="right" fontSize={10} fill="#475569" formatter={(v) => formatCompact(Number(v))} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Cost Breakdown (Sub Total vs SST)" icon={Percent} accent="#e34948" className="lg:col-span-2 xl:col-span-1">
+              <Donut
+                data={costBreakdown}
+                colors={(n) => COST_COLORS[n] ?? NEUTRAL}
+                centerLabel="Grand"
+                centerValue={`RM ${formatCompact(subTotalSum + sstTotalSum)}`}
+              />
+            </ChartCard>
           </div>
 
           {/* Recent expenses */}
-          <div className="card scroll-light" style={{ padding: 0, overflowX: "auto" }}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-sm text-slate-700">Recent Expenses</h3>
-              <Link href="/expenses" className="text-xs text-blue-600 hover:underline">
-                View all →
+          <div className="card scroll-light" style={{ padding: 0, overflowX: "auto", borderTop: "3px solid #6366f1" }}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                  <Clock size={16} />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-700">Recent Expenses</h3>
+              </div>
+              <Link href="/expenses" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline">
+                View all <ArrowRight size={13} />
               </Link>
             </div>
             <table>
@@ -496,16 +495,24 @@ export default function ExpensesDashboard() {
               </thead>
               <tbody>
                 {recent.map((e) => (
-                  <tr key={e.id}>
+                  <tr key={e.id} className="transition-colors hover:bg-indigo-50/40">
                     <td className="text-xs text-slate-500">{formatDate(e.dateEntry)}</td>
                     <td>
-                      <span className={`badge ${e.nature === "OPEX" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
+                      <span className={`badge ${e.nature === "OPEX" ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800"}`}>
                         {e.nature}
                       </span>
                     </td>
-                    <td className="text-sm">{e.category}</td>
+                    <td className="text-sm">
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ background: colorFor(CATEGORY_NAMES, e.category ?? "") }}
+                        />
+                        {e.category}
+                      </span>
+                    </td>
                     <td className="text-sm">{e.supplier}</td>
-                    <td className="text-sm font-medium">
+                    <td className="text-sm font-semibold text-slate-800">
                       {e.grandTotalRm != null ? formatRM(e.grandTotalRm) : "—"}
                     </td>
                   </tr>
